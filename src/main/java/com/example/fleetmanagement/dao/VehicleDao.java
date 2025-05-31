@@ -1,0 +1,72 @@
+package com.example.fleetmanagement.dao;
+
+import com.example.fleetmanagement.model.Vehicle;
+import com.example.fleetmanagement.util.HibernateUtil;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+
+import java.util.List;
+
+public class VehicleDao {
+
+    public void save(Vehicle vehicle) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.persist(vehicle); // Użyj persist dla nowych encji
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+
+    public void update(Vehicle vehicle) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.merge(vehicle); // Użyj merge dla aktualizacji (lub persist jeśli encja nie jest detached)
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(Vehicle vehicle) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.remove(vehicle); // Użyj remove do usuwania
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+
+    public Vehicle findById(Long id) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.get(Vehicle.class, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public List<Vehicle> findAll() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("FROM Vehicle", Vehicle.class).list();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of(); // Zwróć pustą listę w razie błędu
+        }
+    }
+}
