@@ -6,7 +6,7 @@
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.fleetmanagement.controller.MainController">
     <center>
         <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
-            <!-- Zakładki zostaną dodane programistycznie w kontrolerze -->
+            <!-- Zakładki zostaną dodane w kontrolerze -->
         </TabPane>
     </center>
 </BorderPane>

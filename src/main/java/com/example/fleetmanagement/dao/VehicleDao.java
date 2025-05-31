@@ -14,7 +14,7 @@ public class VehicleDao {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.persist(vehicle); // Użyj persist dla nowych encji
+            session.persist(vehicle);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -28,7 +28,7 @@ public class VehicleDao {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.merge(vehicle); // Użyj merge dla aktualizacji (lub persist jeśli encja nie jest detached)
+            session.merge(vehicle);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -42,7 +42,7 @@ public class VehicleDao {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.remove(vehicle); // Użyj remove do usuwania
+            session.remove(vehicle);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

@@ -12,7 +12,6 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         // Inicjalizacja Hibernate przy starcie aplikacji
-        // Wywołanie getSessionFactory() inicjalizuje statyczny blok w HibernateUtil
         HibernateUtil.getSessionFactory();
 
         FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("MainView.fxml"));

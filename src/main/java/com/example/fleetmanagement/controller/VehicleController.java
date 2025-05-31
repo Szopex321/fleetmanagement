@@ -84,9 +84,9 @@ public class VehicleController {
             );
             try {
                 vehicleDao.save(newVehicle);
-                vehicleList.add(newVehicle); // Dodaj bezpośrednio do listy jeśli ID jest auto-generowane
+                vehicleList.add(newVehicle); // Dodaj bezpośrednio do listy
                 clearFields();
-            } catch (Exception e) { // Łapanie np. naruszenia UNIQUE constraint
+            } catch (Exception e) { // Łapanie naruszenia UNIQUE
                 showError("Błąd dodawania pojazdu", "Nie udało się dodać pojazdu. Sprawdź czy numer rejestracyjny nie jest już zajęty.\n" + e.getMessage());
             }
         }
@@ -107,7 +107,7 @@ public class VehicleController {
             try {
                 vehicleDao.update(selectedVehicle);
                 // Odświeżenie elementu w TableView
-                vehicleTable.refresh(); // Wystarczy refresh jeśli obiekt w liście to ten sam obiekt
+                vehicleTable.refresh();
                 clearFields();
             } catch (Exception e) {
                 showError("Błąd edycji pojazdu", "Nie udało się zaktualizować pojazdu.\n" + e.getMessage());
@@ -157,7 +157,6 @@ public class VehicleController {
         if (regNumberField.getText() == null || regNumberField.getText().isEmpty()) {
             errorMessage += "Numer rejestracyjny nie może być pusty.\n";
         }
-        // Można dodać więcej walidacji np. format numeru rejestracyjnego, zakres roku
 
         if (errorMessage.isEmpty()) {
             return true;

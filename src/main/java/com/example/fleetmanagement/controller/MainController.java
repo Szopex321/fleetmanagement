@@ -2,6 +2,7 @@ package com.example.fleetmanagement.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Pane;
@@ -17,7 +18,7 @@ public class MainController {
     @FXML
     public void initialize() {
         loadTab("Pojazdy", "/com/example/fleetmanagement/VehicleView.fxml");
-        loadTab("Kierowcy", "/com/example/fleetmanagement/DriverView.fxml");
+        loadTab("Kierowcy", "/com/example/fleetmanagement/DriverView.fxml"); // TA LINIA
         loadTab("Przypisania", "/com/example/fleetmanagement/AssignmentView.fxml");
     }
 
@@ -30,7 +31,11 @@ public class MainController {
             tabPane.getTabs().add(tab);
         } catch (IOException e) {
             e.printStackTrace();
-            // Można tu dodać Alert informujący o błędzie ładowania zakładki
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Błąd ładowania widoku");
+            errorAlert.setHeaderText("Nie udało się załadować zakładki: " + title);
+            errorAlert.setContentText("Ścieżka FXML: " + fxmlPath + "\nBłąd: " + e.getMessage());
+            errorAlert.showAndWait();
         }
     }
 }

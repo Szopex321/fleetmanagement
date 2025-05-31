@@ -27,7 +27,6 @@ public class Vehicle {
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Assignment> assignments = new HashSet<>();
 
-    // Constructors
     public Vehicle() {}
 
     public Vehicle(String make, String model, String registrationNumber, Integer productionYear) {
@@ -37,7 +36,6 @@ public class Vehicle {
         this.productionYear = productionYear;
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getMake() { return make; }

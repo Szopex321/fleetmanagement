@@ -1,7 +1,7 @@
 package com.example.fleetmanagement.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDate; // Użyj LocalDate dla dat
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "assignments")
@@ -27,7 +27,6 @@ public class Assignment {
 
     private String destination;
 
-    // Constructors
     public Assignment() {}
 
     public Assignment(Vehicle vehicle, Driver driver, LocalDate startDate, LocalDate endDate, String destination) {
@@ -38,7 +37,6 @@ public class Assignment {
         this.destination = destination;
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Vehicle getVehicle() { return vehicle; }
@@ -52,7 +50,6 @@ public class Assignment {
     public String getDestination() { return destination; }
     public void setDestination(String destination) { this.destination = destination; }
 
-    // Property getters for TableView (JavaFX properties not strictly needed for simple display)
     public String getVehicleDisplay() {
         return vehicle != null ? vehicle.toString() : "N/A";
     }

@@ -11,7 +11,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<!-- Usunięto: <?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?> -->
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.fleetmanagement.controller.VehicleController">
     <center>
@@ -43,7 +42,6 @@
                 <Label text="Rok prod.:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
                 <Spinner fx:id="yearSpinner" GridPane.rowIndex="1" GridPane.columnIndex="3" editable="true">
                     <valueFactory>
-                        <!-- Zmieniono tutaj na w pełni kwalifikowaną nazwę -->
                         <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1900" max="2050" initialValue="2023" />
                     </valueFactory>
                 </Spinner>
