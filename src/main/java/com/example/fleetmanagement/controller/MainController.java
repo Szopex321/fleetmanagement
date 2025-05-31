@@ -18,7 +18,7 @@ public class MainController {
     @FXML
     public void initialize() {
         loadTab("Pojazdy", "/com/example/fleetmanagement/VehicleView.fxml");
-        loadTab("Kierowcy", "/com/example/fleetmanagement/DriverView.fxml"); // TA LINIA
+        loadTab("Kierowcy", "/com/example/fleetmanagement/DriverView.fxml");
         loadTab("Przypisania", "/com/example/fleetmanagement/AssignmentView.fxml");
     }
 

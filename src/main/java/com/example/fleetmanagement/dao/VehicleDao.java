@@ -52,15 +52,6 @@ public class VehicleDao {
         }
     }
 
-    public Vehicle findById(Long id) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.get(Vehicle.class, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     public List<Vehicle> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery("FROM Vehicle", Vehicle.class).list();

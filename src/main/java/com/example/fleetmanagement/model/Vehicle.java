@@ -50,7 +50,7 @@ public class Vehicle {
     public void setAssignments(Set<Assignment> assignments) { this.assignments = assignments; }
 
     @Override
-    public String toString() { // Przydatne dla ComboBox
+    public String toString() {
         return make + " " + model + " (" + registrationNumber + ")";
     }
 }

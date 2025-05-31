@@ -58,14 +58,6 @@ public class DriverDao {
         }
     }
 
-    public Driver findById(Long id) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.get(Driver.class, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     public List<Driver> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
