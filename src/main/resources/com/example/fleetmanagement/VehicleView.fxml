@@ -9,13 +9,14 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.fleetmanagement.controller.VehicleController">
     <center>
-        <TableView fx:id="vehicleTable" prefHeight="400.0" prefWidth="600.0">
+        <TableView fx:id="vehicleTable" prefHeight="400.0" prefWidth="800.0">
             <columns>
-                <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID" />
-                <TableColumn fx:id="makeColumn" prefWidth="150.0" text="Marka" />
-                <TableColumn fx:id="modelColumn" prefWidth="150.0" text="Model" />
-                <TableColumn fx:id="regNumberColumn" prefWidth="150.0" text="Nr Rejestracyjny" />
-                <TableColumn fx:id="yearColumn" prefWidth="100.0" text="Rok Prod." />
+                <TableColumn fx:id="makeColumn" prefWidth="100.0" text="Marka" />
+                <TableColumn fx:id="modelColumn" prefWidth="100.0" text="Model" />
+                <TableColumn fx:id="regNumberColumn" prefWidth="120.0" text="Nr Rejestracyjny" />
+                <TableColumn fx:id="yearColumn" prefWidth="70.0" text="Rok Prod." />
+                <TableColumn fx:id="vinTableColumn" prefWidth="140.0" text="VIN" />
+                <TableColumn fx:id="statusTableColumn" prefWidth="100.0" text="Status" />
             </columns>
             <BorderPane.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

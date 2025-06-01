@@ -4,28 +4,30 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 
 <GridPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-          hgap="10" vgap="10">
+          hgap="10" vgap="10" style="-fx-font-size: 13px;">
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets top="20" right="30" bottom="20" left="20"/>
     </padding>
 
     <columnConstraints>
-        <ColumnConstraints prefWidth="100"/>
-        <ColumnConstraints prefWidth="250"/>
+        <ColumnConstraints prefWidth="160"/>
+        <ColumnConstraints prefWidth="280"/>
     </columnConstraints>
 
-    <Label text="Marka:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <Label text="Marka (*):" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
     <TextField fx:id="makeFieldDialog" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-    <Label text="Model:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <Label text="Model (*):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
     <TextField fx:id="modelFieldDialog" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-    <Label text="Nr rej.:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+    <Label text="Nr rej. (*):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
     <TextField fx:id="regNumberFieldDialog" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
     <Label text="Rok prod.:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
@@ -34,4 +36,28 @@
             <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1900" max="2050" initialValue="2023" amountToStepBy="1"/>
         </valueFactory>
     </Spinner>
+
+    <Label text="VIN:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+    <TextField fx:id="vinFieldDialog" promptText="17 znaków (opcjonalnie)" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+    <Label text="Rodzaj Paliwa:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="fuelTypeComboBoxDialog" promptText="Wybierz rodzaj paliwa" GridPane.rowIndex="5" GridPane.columnIndex="1" prefWidth="Infinity"/>
+
+    <Label text="Status Pojazdu:" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="statusComboBoxDialog" promptText="Wybierz status" GridPane.rowIndex="6" GridPane.columnIndex="1" prefWidth="Infinity"/>
+
+    <Label text="Przebieg (km):" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+    <TextField fx:id="mileageFieldDialog" promptText="np. 123456" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+    <Label text="Data Zakupu:" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+    <DatePicker fx:id="purchaseDatePickerDialog" promptText="Wybierz datę" GridPane.rowIndex="8" GridPane.columnIndex="1" prefWidth="Infinity"/>
+
+    <Label text="Ostatni Serwis:" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+    <DatePicker fx:id="lastServiceDatePickerDialog" promptText="Wybierz datę" GridPane.rowIndex="9" GridPane.columnIndex="1" prefWidth="Infinity"/>
+
+    <Label text="Ważność Ubezpieczenia:" GridPane.rowIndex="10" GridPane.columnIndex="0"/>
+    <DatePicker fx:id="insuranceExpiryDatePickerDialog" promptText="Wybierz datę" GridPane.rowIndex="10" GridPane.columnIndex="1" prefWidth="Infinity"/>
+
+    <Label text="Notatki:" GridPane.rowIndex="11" GridPane.columnIndex="0"/>
+    <TextArea fx:id="notesTextAreaDialog" promptText="Dodatkowe informacje..." GridPane.rowIndex="11" GridPane.columnIndex="1" prefHeight="80" wrapText="true"/>
 </GridPane>
