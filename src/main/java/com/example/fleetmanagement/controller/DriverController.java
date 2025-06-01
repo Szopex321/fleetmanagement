@@ -1,17 +1,18 @@
 package com.example.fleetmanagement.controller;
 
+import com.example.fleetmanagement.MainApp;
 import com.example.fleetmanagement.dao.DriverDao;
 import com.example.fleetmanagement.model.Driver;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 
+import java.io.IOException;
 import java.util.Optional;
 
 public class DriverController {
@@ -21,10 +22,6 @@ public class DriverController {
     @FXML private TableColumn<Driver, String> firstNameColumn;
     @FXML private TableColumn<Driver, String> lastNameColumn;
     @FXML private TableColumn<Driver, String> licenseNumberColumn;
-
-    @FXML private TextField firstNameField;
-    @FXML private TextField lastNameField;
-    @FXML private TextField licenseNumberField;
 
     private DriverDao driverDao;
     private ObservableList<Driver> driverList;
@@ -38,11 +35,6 @@ public class DriverController {
         licenseNumberColumn.setCellValueFactory(new PropertyValueFactory<>("licenseNumber"));
 
         loadDrivers();
-
-        // Listener do wypełniania pól po zaznaczeniu wiersza
-        driverTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> populateFields(newValue)
-        );
     }
 
     private void loadDrivers() {
@@ -50,38 +42,45 @@ public class DriverController {
         driverTable.setItems(driverList);
     }
 
-    private void populateFields(Driver driver) {
-        if (driver != null) {
-            firstNameField.setText(driver.getFirstName());
-            lastNameField.setText(driver.getLastName());
-            licenseNumberField.setText(driver.getLicenseNumber());
-        } else {
-            clearFields();
-        }
-    }
-
-    private void clearFields() {
-        firstNameField.clear();
-        lastNameField.clear();
-        licenseNumberField.clear();
-        driverTable.getSelectionModel().clearSelection();
-    }
-
     @FXML
     private void handleAddDriver() {
-        if (validateInput()) {
-            Driver newDriver = new Driver(
-                    firstNameField.getText(),
-                    lastNameField.getText(),
-                    licenseNumberField.getText()
-            );
-            try {
-                driverDao.save(newDriver);
-                loadDrivers(); // Ponowne załadowanie odświeży listę i pokaże ID
-                clearFields();
-            } catch (Exception e) { // Łapanie naruszenia UNIQUE dla numeru prawa jazdy
-                showError("Błąd dodawania kierowcy", "Nie udało się dodać kierowcy. Sprawdź czy numer prawa jazdy nie jest już zajęty.\n" + e.getMessage());
+        try {
+            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("dialog/DriverDialog.fxml"));
+            GridPane dialogPaneContent = loader.load();
+
+            TextField firstNameFieldDialog = (TextField) dialogPaneContent.lookup("#firstNameFieldDialog");
+            TextField lastNameFieldDialog = (TextField) dialogPaneContent.lookup("#lastNameFieldDialog");
+            TextField licenseNumberFieldDialog = (TextField) dialogPaneContent.lookup("#licenseNumberFieldDialog");
+            firstNameFieldDialog.requestFocus();
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Dodaj Nowego Kierowcę");
+            dialog.getDialogPane().setContent(dialogPaneContent);
+
+            ButtonType okButtonType = new ButtonType("Zapisz", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+            dialog.setResizable(true);
+
+            Optional<ButtonType> result = dialog.showAndWait();
+
+            if (result.isPresent() && result.get() == okButtonType) {
+                if (validateDialogInput(firstNameFieldDialog, lastNameFieldDialog, licenseNumberFieldDialog)) {
+                    Driver newDriver = new Driver(
+                            firstNameFieldDialog.getText(),
+                            lastNameFieldDialog.getText(),
+                            licenseNumberFieldDialog.getText()
+                    );
+                    try {
+                        driverDao.save(newDriver);
+                        loadDrivers();
+                    } catch (Exception e) {
+                        showError("Błąd dodawania kierowcy", "Nie udało się dodać kierowcy. Sprawdź czy numer prawa jazdy nie jest już zajęty.\nBłąd: " + e.getMessage());
+                    }
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Błąd aplikacji", "Nie udało się otworzyć okna dialogowego: " + e.getMessage());
         }
     }
 
@@ -92,17 +91,71 @@ public class DriverController {
             showAlert("Brak zaznaczenia", "Proszę zaznaczyć kierowcę do edycji.");
             return;
         }
-        if (validateInput()) {
-            selectedDriver.setFirstName(firstNameField.getText());
-            selectedDriver.setLastName(lastNameField.getText());
-            selectedDriver.setLicenseNumber(licenseNumberField.getText());
-            try {
-                driverDao.update(selectedDriver);
-                driverTable.refresh();
-                clearFields();
-            } catch (Exception e) {
-                showError("Błąd edycji kierowcy", "Nie udało się zaktualizować danych kierowcy.\n" + e.getMessage());
+
+        try {
+            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("dialog/DriverDialog.fxml"));
+            GridPane dialogPaneContent = loader.load();
+
+            TextField firstNameFieldDialog = (TextField) dialogPaneContent.lookup("#firstNameFieldDialog");
+            TextField lastNameFieldDialog = (TextField) dialogPaneContent.lookup("#lastNameFieldDialog");
+            TextField licenseNumberFieldDialog = (TextField) dialogPaneContent.lookup("#licenseNumberFieldDialog");
+
+            firstNameFieldDialog.setText(selectedDriver.getFirstName());
+            lastNameFieldDialog.setText(selectedDriver.getLastName());
+            licenseNumberFieldDialog.setText(selectedDriver.getLicenseNumber());
+            firstNameFieldDialog.requestFocus();
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Edytuj Dane Kierowcy");
+            dialog.getDialogPane().setContent(dialogPaneContent);
+
+            ButtonType okButtonType = new ButtonType("Zapisz Zmiany", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+            dialog.setResizable(true);
+
+            Optional<ButtonType> result = dialog.showAndWait();
+
+            if (result.isPresent() && result.get() == okButtonType) {
+                if (validateDialogInput(firstNameFieldDialog, lastNameFieldDialog, licenseNumberFieldDialog)) {
+                    selectedDriver.setFirstName(firstNameFieldDialog.getText());
+                    selectedDriver.setLastName(lastNameFieldDialog.getText());
+                    selectedDriver.setLicenseNumber(licenseNumberFieldDialog.getText());
+                    try {
+                        driverDao.update(selectedDriver);
+                        loadDrivers();
+                    } catch (Exception e) {
+                        showError("Błąd edycji kierowcy", "Nie udało się zaktualizować danych kierowcy.\nBłąd: " + e.getMessage());
+                    }
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Błąd aplikacji", "Nie udało się otworzyć okna dialogowego: " + e.getMessage());
+        }
+    }
+
+    private boolean validateDialogInput(TextField firstNameField, TextField lastNameField, TextField licenseNumberField) {
+        String errorMessage = "";
+        if (firstNameField.getText() == null || firstNameField.getText().trim().isEmpty()) {
+            errorMessage += "Imię jest wymagane.\n";
+        }
+        if (lastNameField.getText() == null || lastNameField.getText().trim().isEmpty()) {
+            errorMessage += "Nazwisko jest wymagane.\n";
+        }
+        if (licenseNumberField.getText() == null || licenseNumberField.getText().trim().isEmpty()) {
+            errorMessage += "Numer prawa jazdy jest wymagany.\n";
+        }
+
+        if (errorMessage.isEmpty()) {
+            return true;
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Błąd walidacji danych");
+            alert.setHeaderText(null);
+            alert.setContentText(errorMessage);
+            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            alert.showAndWait();
+            return false;
         }
     }
 
@@ -117,16 +170,15 @@ public class DriverController {
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Potwierdzenie usunięcia");
         confirmation.setHeaderText("Czy na pewno chcesz usunąć kierowcę: " + selectedDriver.getFirstName() + " " + selectedDriver.getLastName() + "?");
-        confirmation.setContentText("Tej operacji nie można cofnąć. Powiązane przypisania mogą zostać zmodyfikowane (ustawienie kierowcy na NULL).");
+        confirmation.setContentText("Tej operacji nie można cofnąć. Powiązane przypisania mogą zostać zmodyfikowane.");
 
         Optional<ButtonType> result = confirmation.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 driverDao.delete(selectedDriver);
-                driverList.remove(selectedDriver);
-                clearFields();
+                loadDrivers();
             } catch (Exception e) {
-                showError("Błąd usuwania kierowcy", "Nie udało się usunąć kierowcy.\n" + e.getMessage());
+                showError("Błąd usuwania kierowcy", "Nie udało się usunąć kierowcy.\nBłąd: " + e.getMessage());
             }
         }
     }
@@ -134,27 +186,6 @@ public class DriverController {
     @FXML
     private void handleRefresh() {
         loadDrivers();
-        clearFields();
-    }
-
-    private boolean validateInput() {
-        String errorMessage = "";
-        if (firstNameField.getText() == null || firstNameField.getText().trim().isEmpty()) {
-            errorMessage += "Imię nie może być puste.\n";
-        }
-        if (lastNameField.getText() == null || lastNameField.getText().trim().isEmpty()) {
-            errorMessage += "Nazwisko nie może być puste.\n";
-        }
-        if (licenseNumberField.getText() == null || licenseNumberField.getText().trim().isEmpty()) {
-            errorMessage += "Numer prawa jazdy nie może być pusty.\n";
-        }
-
-        if (errorMessage.isEmpty()) {
-            return true;
-        } else {
-            showAlert("Błąd walidacji", errorMessage);
-            return false;
-        }
     }
 
     private void showAlert(String title, String content) {
@@ -162,6 +193,7 @@ public class DriverController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
     }
 
@@ -170,6 +202,7 @@ public class DriverController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
     }
 }

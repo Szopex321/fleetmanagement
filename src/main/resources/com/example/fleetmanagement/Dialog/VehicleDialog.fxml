@@ -8,8 +8,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 
-<!-- To jest DialogPane, a nie BorderPane. Kontroler nie jest tu potrzebny. -->
-<!-- Sterowanie logiką przycisków i pobieraniem danych będzie w kodzie, który tworzy dialog. -->
 <GridPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
           hgap="10" vgap="10">
     <padding>
