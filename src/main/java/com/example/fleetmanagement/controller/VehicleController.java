@@ -1,19 +1,19 @@
 package com.example.fleetmanagement.controller;
 
+import com.example.fleetmanagement.MainApp; // Potrzebne do ładowania FXML dialogu
 import com.example.fleetmanagement.dao.VehicleDao;
 import com.example.fleetmanagement.model.Vehicle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
 
+import java.io.IOException;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 public class VehicleController {
 
@@ -23,11 +23,6 @@ public class VehicleController {
     @FXML private TableColumn<Vehicle, String> modelColumn;
     @FXML private TableColumn<Vehicle, String> regNumberColumn;
     @FXML private TableColumn<Vehicle, Integer> yearColumn;
-
-    @FXML private TextField makeField;
-    @FXML private TextField modelField;
-    @FXML private TextField regNumberField;
-    @FXML private Spinner<Integer> yearSpinner;
 
     private VehicleDao vehicleDao;
     private ObservableList<Vehicle> vehicleList;
@@ -42,11 +37,6 @@ public class VehicleController {
         yearColumn.setCellValueFactory(new PropertyValueFactory<>("productionYear"));
 
         loadVehicles();
-
-        // Listener do wypełniania pól po zaznaczeniu wiersza
-        vehicleTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> populateFields(newValue)
-        );
     }
 
     private void loadVehicles() {
@@ -54,41 +44,51 @@ public class VehicleController {
         vehicleTable.setItems(vehicleList);
     }
 
-    private void populateFields(Vehicle vehicle) {
-        if (vehicle != null) {
-            makeField.setText(vehicle.getMake());
-            modelField.setText(vehicle.getModel());
-            regNumberField.setText(vehicle.getRegistrationNumber());
-            yearSpinner.getValueFactory().setValue(vehicle.getProductionYear());
-        } else {
-            clearFields();
-        }
-    }
-
-    private void clearFields() {
-        makeField.clear();
-        modelField.clear();
-        regNumberField.clear();
-        yearSpinner.getValueFactory().setValue(java.time.LocalDate.now().getYear()); // Ustaw domyślny rok
-        vehicleTable.getSelectionModel().clearSelection();
-    }
-
     @FXML
     private void handleAddVehicle() {
-        if (validateInput()) {
-            Vehicle newVehicle = new Vehicle(
-                    makeField.getText(),
-                    modelField.getText(),
-                    regNumberField.getText(),
-                    yearSpinner.getValue()
-            );
-            try {
-                vehicleDao.save(newVehicle);
-                vehicleList.add(newVehicle); // Dodaj bezpośrednio do listy
-                clearFields();
-            } catch (Exception e) { // Łapanie naruszenia UNIQUE
-                showError("Błąd dodawania pojazdu", "Nie udało się dodać pojazdu. Sprawdź czy numer rejestracyjny nie jest już zajęty.\n" + e.getMessage());
+        try {
+            // Załaduj FXML dialogu
+            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("dialog/VehicleDialog.fxml"));
+            GridPane dialogPaneContent = loader.load();
+
+            // Pobierz referencje do kontrolek z załadowanego FXML
+            TextField makeFieldDialog = (TextField) dialogPaneContent.lookup("#makeFieldDialog");
+            TextField modelFieldDialog = (TextField) dialogPaneContent.lookup("#modelFieldDialog");
+            TextField regNumberFieldDialog = (TextField) dialogPaneContent.lookup("#regNumberFieldDialog");
+            Spinner<Integer> yearSpinnerDialog = (Spinner<Integer>) dialogPaneContent.lookup("#yearSpinnerDialog");
+
+            // Utwórz dialog
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Dodaj Nowy Pojazd");
+            dialog.getDialogPane().setContent(dialogPaneContent);
+
+            // Dodaj przyciski OK i Anuluj
+            ButtonType okButtonType = new ButtonType("Zapisz", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+            // Pokaż dialog i poczekaj na odpowiedź
+            Optional<ButtonType> result = dialog.showAndWait();
+
+            if (result.isPresent() && result.get() == okButtonType) {
+                if (validateDialogInput(makeFieldDialog, modelFieldDialog, regNumberFieldDialog)) {
+                    Vehicle newVehicle = new Vehicle(
+                            makeFieldDialog.getText(),
+                            modelFieldDialog.getText(),
+                            regNumberFieldDialog.getText(),
+                            yearSpinnerDialog.getValue()
+                    );
+                    try {
+                        vehicleDao.save(newVehicle);
+                        loadVehicles(); // Odśwież listę
+                    } catch (Exception e) {
+                        showError("Błąd dodawania pojazdu", "Nie udało się dodać pojazdu. Sprawdź czy numer rejestracyjny nie jest już zajęty.\n" + e.getMessage());
+                    }
+                }
             }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Błąd aplikacji", "Nie udało się otworzyć okna dialogowego.");
         }
     }
 
@@ -99,21 +99,80 @@ public class VehicleController {
             showAlert("Brak zaznaczenia", "Proszę zaznaczyć pojazd do edycji.");
             return;
         }
-        if (validateInput()) {
-            selectedVehicle.setMake(makeField.getText());
-            selectedVehicle.setModel(modelField.getText());
-            selectedVehicle.setRegistrationNumber(regNumberField.getText());
-            selectedVehicle.setProductionYear(yearSpinner.getValue());
-            try {
-                vehicleDao.update(selectedVehicle);
-                // Odświeżenie elementu w TableView
-                vehicleTable.refresh();
-                clearFields();
-            } catch (Exception e) {
-                showError("Błąd edycji pojazdu", "Nie udało się zaktualizować pojazdu.\n" + e.getMessage());
+
+        try {
+            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("dialog/VehicleDialog.fxml"));
+            GridPane dialogPaneContent = loader.load();
+
+            TextField makeFieldDialog = (TextField) dialogPaneContent.lookup("#makeFieldDialog");
+            TextField modelFieldDialog = (TextField) dialogPaneContent.lookup("#modelFieldDialog");
+            TextField regNumberFieldDialog = (TextField) dialogPaneContent.lookup("#regNumberFieldDialog");
+            Spinner<Integer> yearSpinnerDialog = (Spinner<Integer>) dialogPaneContent.lookup("#yearSpinnerDialog");
+
+            // Ustaw aktualne wartości w dialogu
+            makeFieldDialog.setText(selectedVehicle.getMake());
+            modelFieldDialog.setText(selectedVehicle.getModel());
+            regNumberFieldDialog.setText(selectedVehicle.getRegistrationNumber());
+            if (selectedVehicle.getProductionYear() != null) {
+                yearSpinnerDialog.getValueFactory().setValue(selectedVehicle.getProductionYear());
+            } else {
+                yearSpinnerDialog.getValueFactory().setValue(java.time.LocalDate.now().getYear()); // Domyślna wartość, jeśli null
             }
+
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Edytuj Pojazd");
+            dialog.getDialogPane().setContent(dialogPaneContent);
+
+            ButtonType okButtonType = new ButtonType("Zapisz Zmiany", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+            Optional<ButtonType> result = dialog.showAndWait();
+
+            if (result.isPresent() && result.get() == okButtonType) {
+                if (validateDialogInput(makeFieldDialog, modelFieldDialog, regNumberFieldDialog)) {
+                    selectedVehicle.setMake(makeFieldDialog.getText());
+                    selectedVehicle.setModel(modelFieldDialog.getText());
+                    selectedVehicle.setRegistrationNumber(regNumberFieldDialog.getText());
+                    selectedVehicle.setProductionYear(yearSpinnerDialog.getValue());
+                    try {
+                        vehicleDao.update(selectedVehicle);
+                        loadVehicles(); // Odśwież listę
+                    } catch (Exception e) {
+                        showError("Błąd edycji pojazdu", "Nie udało się zaktualizować pojazdu.\n" + e.getMessage());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Błąd aplikacji", "Nie udało się otworzyć okna dialogowego.");
         }
     }
+
+    private boolean validateDialogInput(TextField makeField, TextField modelField, TextField regNumberField) {
+        String errorMessage = "";
+        if (makeField.getText() == null || makeField.getText().trim().isEmpty()) {
+            errorMessage += "Marka nie może być pusta.\n";
+        }
+        if (modelField.getText() == null || modelField.getText().trim().isEmpty()) {
+            errorMessage += "Model nie może być pusty.\n";
+        }
+        if (regNumberField.getText() == null || regNumberField.getText().trim().isEmpty()) {
+            errorMessage += "Numer rejestracyjny nie może być pusty.\n";
+        }
+
+        if (errorMessage.isEmpty()) {
+            return true;
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Błąd walidacji danych");
+            alert.setHeaderText(null);
+            alert.setContentText(errorMessage);
+            alert.showAndWait();
+            return false;
+        }
+    }
+
 
     @FXML
     private void handleDeleteVehicle() {
@@ -132,8 +191,7 @@ public class VehicleController {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 vehicleDao.delete(selectedVehicle);
-                vehicleList.remove(selectedVehicle);
-                clearFields();
+                loadVehicles(); // Odśwież listę
             } catch (Exception e) {
                 showError("Błąd usuwania pojazdu", "Nie udało się usunąć pojazdu.\n" + e.getMessage());
             }
@@ -143,27 +201,6 @@ public class VehicleController {
     @FXML
     private void handleRefresh() {
         loadVehicles();
-        clearFields();
-    }
-
-    private boolean validateInput() {
-        String errorMessage = "";
-        if (makeField.getText() == null || makeField.getText().isEmpty()) {
-            errorMessage += "Marka nie może być pusta.\n";
-        }
-        if (modelField.getText() == null || modelField.getText().isEmpty()) {
-            errorMessage += "Model nie może być pusty.\n";
-        }
-        if (regNumberField.getText() == null || regNumberField.getText().isEmpty()) {
-            errorMessage += "Numer rejestracyjny nie może być pusty.\n";
-        }
-
-        if (errorMessage.isEmpty()) {
-            return true;
-        } else {
-            showAlert("Błąd walidacji", errorMessage);
-            return false;
-        }
     }
 
     private void showAlert(String title, String content) {

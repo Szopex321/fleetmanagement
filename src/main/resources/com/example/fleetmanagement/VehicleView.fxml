@@ -2,15 +2,10 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.fleetmanagement.controller.VehicleController">
     <center>
@@ -28,30 +23,14 @@
         </TableView>
     </center>
     <bottom>
-        <VBox spacing="10" alignment="CENTER_LEFT">
+        <HBox spacing="10.0" alignment="CENTER_LEFT">
             <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
-            <GridPane hgap="10" vgap="5">
-                <Label text="Marka:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <TextField fx:id="makeField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                <Label text="Model:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <TextField fx:id="modelField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                <Label text="Nr rej.:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                <TextField fx:id="regNumberField" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
-                <Label text="Rok prod.:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-                <Spinner fx:id="yearSpinner" GridPane.rowIndex="1" GridPane.columnIndex="3" editable="true">
-                    <valueFactory>
-                        <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1900" max="2050" initialValue="2023" />
-                    </valueFactory>
-                </Spinner>
-            </GridPane>
-            <HBox spacing="10.0">
-                <Button onAction="#handleAddVehicle" text="Dodaj" />
-                <Button onAction="#handleEditVehicle" text="Edytuj" />
-                <Button onAction="#handleDeleteVehicle" text="Usuń" />
-                <Button onAction="#handleRefresh" text="Odśwież" />
-            </HBox>
-        </VBox>
+            <Button onAction="#handleAddVehicle" text="Dodaj Pojazd..." />
+            <Button onAction="#handleEditVehicle" text="Edytuj Zaznaczony..." />
+            <Button onAction="#handleDeleteVehicle" text="Usuń Zaznaczony" />
+            <Button onAction="#handleRefresh" text="Odśwież Listę" />
+        </HBox>
     </bottom>
 </BorderPane>
