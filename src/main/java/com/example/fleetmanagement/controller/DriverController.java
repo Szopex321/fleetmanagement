@@ -103,8 +103,16 @@ public class DriverController {
         driver.setLicenseExpiryDate(((DatePicker) dialogPaneContent.lookup("#licenseExpiryDatePickerDialog")).getValue());
         driver.setMedicalCheckExpiryDate(((DatePicker) dialogPaneContent.lookup("#medicalCheckDatePickerDialog")).getValue());
 
-        String address = ((TextArea) dialogPaneContent.lookup("#addressTextAreaDialog")).getText().trim();
-        driver.setAddress(address.isEmpty() ? null : address);
+        TextArea addressTextArea = (TextArea) dialogPaneContent.lookup("#addressTextAreaDialog");
+        String addressContent = addressTextArea.getText();
+        if (addressContent != null) {
+            addressContent = addressContent.trim();
+            driver.setAddress(addressContent.isEmpty() ? null : addressContent);
+        } else {
+            driver.setAddress(null);
+        }
+
+
     }
 
     private boolean validateDialogInput(GridPane dialogPaneContent) {

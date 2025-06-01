@@ -127,8 +127,15 @@ public class AssignmentController {
         assignment.setEndDate(((DatePicker) dialogPaneContent.lookup("#endDatePickerDialogInterface")).getValue());
         assignment.setDestination(((TextField) dialogPaneContent.lookup("#destinationFieldDialog")).getText().trim());
 
-        String purpose = ((TextField) dialogPaneContent.lookup("#purposeFieldDialog")).getText().trim();
-        assignment.setPurpose(purpose.isEmpty() ? null : purpose);
+        TextField destinationField = (TextField) dialogPaneContent.lookup("#destinationFieldDialog");
+        String destinationContent = destinationField.getText();
+
+        if (destinationContent != null) {
+            destinationContent = destinationContent.trim();
+            assignment.setDestination(destinationContent.isEmpty() ? null : destinationContent);
+        } else {
+            assignment.setDestination(null);
+        }
 
         assignment.setStatus(((ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog")).getValue());
 
@@ -138,8 +145,14 @@ public class AssignmentController {
         String endMileageStr = ((TextField) dialogPaneContent.lookup("#endMileageFieldDialog")).getText().trim();
         assignment.setEndMileage(endMileageStr.isEmpty() ? null : Integer.parseInt(endMileageStr));
 
-        String notes = ((TextArea) dialogPaneContent.lookup("#notesTextAreaDialog")).getText().trim();
-        assignment.setNotes(notes.isEmpty() ? null : notes);
+        TextArea notesTextArea = (TextArea) dialogPaneContent.lookup("#notesTextAreaDialog");
+        String notesContent = notesTextArea.getText();
+        if (notesContent != null) {
+            notesContent = notesContent.trim();
+            assignment.setNotes(notesContent.isEmpty() ? null : notesContent);
+        } else {
+            assignment.setNotes(null);
+        }
     }
 
     private boolean validateDialogInput(GridPane dialogPaneContent) {

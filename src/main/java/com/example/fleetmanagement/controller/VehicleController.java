@@ -116,8 +116,14 @@ public class VehicleController {
         vehicle.setLastServiceDate(((DatePicker) dialogPaneContent.lookup("#lastServiceDatePickerDialog")).getValue());
         vehicle.setInsuranceExpiryDate(((DatePicker) dialogPaneContent.lookup("#insuranceExpiryDatePickerDialog")).getValue());
 
-        String notesText = ((TextArea) dialogPaneContent.lookup("#notesTextAreaDialog")).getText().trim();
-        vehicle.setNotes(notesText.isEmpty() ? null : notesText);
+        TextArea notesTextArea = (TextArea) dialogPaneContent.lookup("#notesTextAreaDialog");
+        String notesContent = notesTextArea.getText();
+        if (notesContent != null) {
+            notesContent = notesContent.trim();
+            vehicle.setNotes(notesContent.isEmpty() ? null : notesContent);
+        } else {
+            vehicle.setNotes(null);
+        }
     }
 
     // Metoda walidacji danych z dialogu
@@ -155,6 +161,7 @@ public class VehicleController {
                 errorMessage.append("Przebieg musi być poprawną liczbą całkowitą.\n");
             }
         }
+
 
         if (errorMessage.length() > 0) {
             Alert alert = new Alert(Alert.AlertType.ERROR);

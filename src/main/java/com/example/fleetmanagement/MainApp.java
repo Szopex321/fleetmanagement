@@ -14,6 +14,8 @@ public class MainApp extends Application {
         // Inicjalizacja Hibernate przy starcie aplikacji
         HibernateUtil.getSessionFactory();
 
+        errorMessage.append("Krótki cel podróży jest wymagany.\n");
+
         FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("MainView.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 800, 600);
         stage.setTitle("System Zarządzania Flotą");
