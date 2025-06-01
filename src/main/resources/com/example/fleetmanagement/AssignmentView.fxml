@@ -9,14 +9,15 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.fleetmanagement.controller.AssignmentController">
     <center>
-        <TableView fx:id="assignmentTable" prefHeight="300.0" prefWidth="780.0">
+        <TableView fx:id="assignmentTable" prefHeight="350.0" prefWidth="950.0">
             <columns>
-                <TableColumn fx:id="idColumn" prefWidth="40.0" text="ID" />
                 <TableColumn fx:id="vehicleColumn" prefWidth="180.0" text="Pojazd" />
                 <TableColumn fx:id="driverColumn" prefWidth="150.0" text="Kierowca" />
                 <TableColumn fx:id="startDateColumn" prefWidth="100.0" text="Od Kiedy" />
                 <TableColumn fx:id="endDateColumn" prefWidth="100.0" text="Do Kiedy" />
-                <TableColumn fx:id="destinationColumn" prefWidth="200.0" text="Cel Podróży" />
+                <TableColumn fx:id="destinationColumn" prefWidth="150.0" text="Cel (Krótki)" />
+                <TableColumn fx:id="statusTableColumn" prefWidth="120.0" text="Status Zadania" />
+                <TableColumn fx:id="purposeTableColumn" prefWidth="150.0" text="Cel (Szczegóły)" />
             </columns>
             <BorderPane.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

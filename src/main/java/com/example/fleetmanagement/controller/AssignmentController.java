@@ -24,12 +24,14 @@ import java.util.Optional;
 public class AssignmentController {
 
     @FXML private TableView<Assignment> assignmentTable;
-    @FXML private TableColumn<Assignment, Long> idColumn;
     @FXML private TableColumn<Assignment, String> vehicleColumn;
     @FXML private TableColumn<Assignment, String> driverColumn;
     @FXML private TableColumn<Assignment, LocalDate> startDateColumn;
     @FXML private TableColumn<Assignment, LocalDate> endDateColumn;
     @FXML private TableColumn<Assignment, String> destinationColumn;
+    @FXML private TableColumn<Assignment, String> statusTableColumn;
+    @FXML private TableColumn<Assignment, String> purposeTableColumn;
+
 
     private AssignmentDao assignmentDao;
     private VehicleDao vehicleDao;
@@ -37,17 +39,20 @@ public class AssignmentController {
 
     private ObservableList<Assignment> assignmentList;
 
+    private final ObservableList<String> assignmentStatuses = FXCollections.observableArrayList("Zaplanowane", "W trakcie", "Zakończone", "Anulowane", "Opóźnione", "Problem");
+
     public void initialize() {
         assignmentDao = new AssignmentDao();
         vehicleDao = new VehicleDao();
         driverDao = new DriverDao();
 
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         vehicleColumn.setCellValueFactory(new PropertyValueFactory<>("vehicleDisplay"));
         driverColumn.setCellValueFactory(new PropertyValueFactory<>("driverDisplay"));
         startDateColumn.setCellValueFactory(new PropertyValueFactory<>("startDate"));
         endDateColumn.setCellValueFactory(new PropertyValueFactory<>("endDate"));
         destinationColumn.setCellValueFactory(new PropertyValueFactory<>("destination"));
+        statusTableColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        purposeTableColumn.setCellValueFactory(new PropertyValueFactory<>("purpose"));
 
         loadAssignments();
     }
@@ -57,99 +62,141 @@ public class AssignmentController {
         assignmentTable.setItems(assignmentList);
     }
 
-    // Metoda pomocnicza do konfiguracji kontrolek w dialogu
     private void setupDialogControls(GridPane dialogPaneContent, Assignment assignmentToEdit) {
-        ComboBox<Vehicle> vehicleComboBoxDialog = (ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog");
-        ComboBox<Driver> driverComboBoxDialog = (ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog");
+        ComboBox<Vehicle> vehicleComboBox = (ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog");
+        ComboBox<Driver> driverComboBox = (ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog");
         DatePicker startDatePicker = (DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface");
         DatePicker endDatePicker = (DatePicker) dialogPaneContent.lookup("#endDatePickerDialogInterface");
         TextField destinationField = (TextField) dialogPaneContent.lookup("#destinationFieldDialog");
+        TextField purposeField = (TextField) dialogPaneContent.lookup("#purposeFieldDialog");
+        ComboBox<String> statusComboBox = (ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog");
+        TextField startMileageField = (TextField) dialogPaneContent.lookup("#startMileageFieldDialog");
+        TextField endMileageField = (TextField) dialogPaneContent.lookup("#endMileageFieldDialog");
+        TextArea notesTextArea = (TextArea) dialogPaneContent.lookup("#notesTextAreaDialog");
 
         ObservableList<Vehicle> vehicles = FXCollections.observableArrayList(vehicleDao.findAll());
-        vehicleComboBoxDialog.setItems(vehicles);
+        vehicleComboBox.setItems(vehicles);
         ObservableList<Driver> drivers = FXCollections.observableArrayList(driverDao.findAll());
-        driverComboBoxDialog.setItems(drivers);
+        driverComboBox.setItems(drivers);
+        statusComboBox.setItems(assignmentStatuses);
 
-        vehicleComboBoxDialog.setConverter(new StringConverter<>() {
+        vehicleComboBox.setConverter(new StringConverter<>() {
             @Override public String toString(Vehicle v) { return v == null ? null : v.toString(); }
             @Override public Vehicle fromString(String s) { return null; }
         });
-        driverComboBoxDialog.setConverter(new StringConverter<>() {
+        driverComboBox.setConverter(new StringConverter<>() {
             @Override public String toString(Driver d) { return d == null ? null : d.toString(); }
             @Override public Driver fromString(String s) { return null; }
         });
 
-        if (assignmentToEdit != null) { // Tryb edycji
+        TextFormatter<String> mileageFormatter1 = new TextFormatter<>(change ->
+                change.getControlNewText().matches("\\d*") ? change : null);
+        TextFormatter<String> mileageFormatter2 = new TextFormatter<>(change ->
+                change.getControlNewText().matches("\\d*") ? change : null);
+        startMileageField.setTextFormatter(mileageFormatter1);
+        endMileageField.setTextFormatter(mileageFormatter2);
+
+
+        if (assignmentToEdit != null) {
             if(assignmentToEdit.getVehicle() != null) {
-                for(Vehicle v : vehicles) {
-                    if(v.getId().equals(assignmentToEdit.getVehicle().getId())) {
-                        vehicleComboBoxDialog.setValue(v);
-                        break;
-                    }
-                }
+                for(Vehicle v : vehicles) { if(v.getId().equals(assignmentToEdit.getVehicle().getId())) { vehicleComboBox.setValue(v); break; } }
             }
             if(assignmentToEdit.getDriver() != null) {
-                for(Driver d : drivers) {
-                    if(d.getId().equals(assignmentToEdit.getDriver().getId())) {
-                        driverComboBoxDialog.setValue(d);
-                        break;
-                    }
-                }
+                for(Driver d : drivers) { if(d.getId().equals(assignmentToEdit.getDriver().getId())) { driverComboBox.setValue(d); break; } }
             }
-
             startDatePicker.setValue(assignmentToEdit.getStartDate());
             endDatePicker.setValue(assignmentToEdit.getEndDate());
             destinationField.setText(assignmentToEdit.getDestination());
-            vehicleComboBoxDialog.requestFocus();
-        } else { // Tryb dodawania
-            startDatePicker.setValue(LocalDate.now()); // Domyślna data rozpoczęcia
-            vehicleComboBoxDialog.requestFocus();
+            purposeField.setText(assignmentToEdit.getPurpose());
+            statusComboBox.setValue(assignmentToEdit.getStatus());
+            startMileageField.setText(assignmentToEdit.getStartMileage() != null ? assignmentToEdit.getStartMileage().toString() : "");
+            endMileageField.setText(assignmentToEdit.getEndMileage() != null ? assignmentToEdit.getEndMileage().toString() : "");
+            notesTextArea.setText(assignmentToEdit.getNotes());
+            vehicleComboBox.requestFocus();
+        } else { // Dodawanie
+            startDatePicker.setValue(LocalDate.now());
+            statusComboBox.setValue("Zaplanowane");
+            vehicleComboBox.requestFocus();
         }
     }
 
-    // Metoda do aktualizacji obiektu Assignment na podstawie danych z dialogu
     private void updateAssignmentFromDialog(Assignment assignment, GridPane dialogPaneContent) {
         assignment.setVehicle(((ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog")).getValue());
         assignment.setDriver(((ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog")).getValue());
         assignment.setStartDate(((DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface")).getValue());
         assignment.setEndDate(((DatePicker) dialogPaneContent.lookup("#endDatePickerDialogInterface")).getValue());
-        assignment.setDestination(((TextField) dialogPaneContent.lookup("#destinationFieldDialog")).getText());
+        assignment.setDestination(((TextField) dialogPaneContent.lookup("#destinationFieldDialog")).getText().trim());
+
+        String purpose = ((TextField) dialogPaneContent.lookup("#purposeFieldDialog")).getText().trim();
+        assignment.setPurpose(purpose.isEmpty() ? null : purpose);
+
+        assignment.setStatus(((ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog")).getValue());
+
+        String startMileageStr = ((TextField) dialogPaneContent.lookup("#startMileageFieldDialog")).getText().trim();
+        assignment.setStartMileage(startMileageStr.isEmpty() ? null : Integer.parseInt(startMileageStr));
+
+        String endMileageStr = ((TextField) dialogPaneContent.lookup("#endMileageFieldDialog")).getText().trim();
+        assignment.setEndMileage(endMileageStr.isEmpty() ? null : Integer.parseInt(endMileageStr));
+
+        String notes = ((TextArea) dialogPaneContent.lookup("#notesTextAreaDialog")).getText().trim();
+        assignment.setNotes(notes.isEmpty() ? null : notes);
     }
 
     private boolean validateDialogInput(GridPane dialogPaneContent) {
-        String errorMessage = "";
+        StringBuilder errorMessage = new StringBuilder();
         if (((ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog")).getValue() == null) {
-            errorMessage += "Należy wybrać pojazd.\n";
+            errorMessage.append("Należy wybrać pojazd.\n");
         }
         if (((ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog")).getValue() == null) {
-            errorMessage += "Należy wybrać kierowcę.\n";
+            errorMessage.append("Należy wybrać kierowcę.\n");
         }
         DatePicker startDatePicker = (DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface");
-        DatePicker endDatePicker = (DatePicker) dialogPaneContent.lookup("#endDatePickerDialogInterface");
         if (startDatePicker.getValue() == null) {
-            errorMessage += "Należy wybrać datę rozpoczęcia.\n";
+            errorMessage.append("Należy wybrać datę rozpoczęcia.\n");
         }
+        DatePicker endDatePicker = (DatePicker) dialogPaneContent.lookup("#endDatePickerDialogInterface");
         if (startDatePicker.getValue() != null && endDatePicker.getValue() != null &&
                 endDatePicker.getValue().isBefore(startDatePicker.getValue())) {
-            errorMessage += "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.\n";
+            errorMessage.append("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.\n");
         }
         TextField destinationField = (TextField) dialogPaneContent.lookup("#destinationFieldDialog");
         if (destinationField.getText() == null || destinationField.getText().trim().isEmpty()) {
-            errorMessage += "Cel podróży jest wymagany.\n";
+            errorMessage.append("Krótki cel podróży jest wymagany.\n");
+        }
+        ComboBox<String> statusComboBox = (ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog");
+        if(statusComboBox.getValue() == null || statusComboBox.getValue().trim().isEmpty()) {
+            errorMessage.append("Status przypisania jest wymagany.\n");
+        }
+
+        TextField startMileageField = (TextField) dialogPaneContent.lookup("#startMileageFieldDialog");
+        TextField endMileageField = (TextField) dialogPaneContent.lookup("#endMileageFieldDialog");
+        Integer startM = null, endM = null;
+
+        try {
+            if(!startMileageField.getText().trim().isEmpty()) startM = Integer.parseInt(startMileageField.getText().trim());
+            if(startM != null && startM < 0) errorMessage.append("Przebieg początkowy nie może być ujemny.\n");
+        } catch (NumberFormatException e) { errorMessage.append("Przebieg początkowy musi być liczbą.\n"); }
+
+        try {
+            if(!endMileageField.getText().trim().isEmpty()) endM = Integer.parseInt(endMileageField.getText().trim());
+            if(endM != null && endM < 0) errorMessage.append("Przebieg końcowy nie może być ujemny.\n");
+        } catch (NumberFormatException e) { errorMessage.append("Przebieg końcowy musi być liczbą.\n"); }
+
+        if(startM != null && endM != null && endM < startM) {
+            errorMessage.append("Przebieg końcowy nie może być mniejszy niż początkowy.\n");
         }
 
 
-        if (errorMessage.isEmpty()) {
-            return true;
-        } else {
+        if (errorMessage.length() > 0) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Błąd walidacji danych");
             alert.setHeaderText(null);
-            alert.setContentText(errorMessage);
+            alert.setContentText(errorMessage.toString());
             alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
             alert.showAndWait();
             return false;
         }
+        return true;
     }
 
     @FXML
@@ -157,8 +204,7 @@ public class AssignmentController {
         try {
             FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("Dialog/AssignmentDialog.fxml"));
             GridPane dialogPaneContent = loader.load();
-
-            setupDialogControls(dialogPaneContent, null); // null dla nowego przypisania
+            setupDialogControls(dialogPaneContent, null);
 
             Dialog<ButtonType> dialog = new Dialog<>();
             dialog.setTitle("Dodaj Nowe Przypisanie");
@@ -170,13 +216,14 @@ public class AssignmentController {
             Optional<ButtonType> result = dialog.showAndWait();
             if (result.isPresent() && result.get() == okButtonType) {
                 if (validateDialogInput(dialogPaneContent)) {
-                    Assignment newAssignment = new Assignment();
+                    Assignment newAssignment = new Assignment(); // Domyślny status i creationDate z @PrePersist
                     updateAssignmentFromDialog(newAssignment, dialogPaneContent);
                     try {
                         assignmentDao.save(newAssignment);
                         loadAssignments();
                     } catch (Exception e) {
                         showError("Błąd dodawania przypisania", "Nie udało się dodać przypisania.\nBłąd: " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
             }
@@ -193,11 +240,9 @@ public class AssignmentController {
             showAlert("Brak zaznaczenia", "Proszę zaznaczyć przypisanie do edycji.");
             return;
         }
-
         try {
             FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("Dialog/AssignmentDialog.fxml"));
             GridPane dialogPaneContent = loader.load();
-
             setupDialogControls(dialogPaneContent, selectedAssignment);
 
             Dialog<ButtonType> dialog = new Dialog<>();
@@ -216,6 +261,7 @@ public class AssignmentController {
                         loadAssignments();
                     } catch (Exception e) {
                         showError("Błąd edycji przypisania", "Nie udało się zaktualizować przypisania.\nBłąd: " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
             }
@@ -232,15 +278,13 @@ public class AssignmentController {
             showAlert("Brak zaznaczenia", "Proszę zaznaczyć przypisanie do usunięcia.");
             return;
         }
-
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Potwierdzenie usunięcia");
         confirmation.setHeaderText("Czy na pewno chcesz usunąć to przypisanie?");
-        String vehicleInfo = selectedAssignment.getVehicle() != null ? selectedAssignment.getVehicle().toString() : "N/A";
-        String driverInfo = selectedAssignment.getDriver() != null ? selectedAssignment.getDriver().toString() : "N/A";
+        String vehicleInfo = selectedAssignment.getVehicle() != null ? selectedAssignment.getVehicle().toString() : "BRAK";
+        String driverInfo = selectedAssignment.getDriver() != null ? selectedAssignment.getDriver().toString() : "BRAK";
         confirmation.setContentText("Pojazd: " + vehicleInfo + "\nKierowca: " + driverInfo + "\nCel: " + selectedAssignment.getDestination());
-
-
+        confirmation.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         Optional<ButtonType> result = confirmation.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {

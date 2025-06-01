@@ -5,32 +5,48 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.RowConstraints?>
 
 <GridPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-          hgap="10" vgap="10">
+          hgap="10" vgap="10" style="-fx-font-size: 13px;">
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets top="20" right="30" bottom="20" left="20"/>
     </padding>
 
     <columnConstraints>
-        <ColumnConstraints prefWidth="150"/>
-        <ColumnConstraints prefWidth="250"/>
+        <ColumnConstraints prefWidth="160"/>
+        <ColumnConstraints prefWidth="280"/>
     </columnConstraints>
-
-    <Label text="Pojazd:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <Label text="Pojazd (*):" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
     <ComboBox fx:id="vehicleComboBoxDialog" promptText="Wybierz pojazd" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="Infinity"/>
 
-    <Label text="Kierowca:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <Label text="Kierowca (*):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
     <ComboBox fx:id="driverComboBoxDialog" promptText="Wybierz kierowcę" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="Infinity"/>
 
-    <Label text="Data Rozpoczęcia:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+    <Label text="Data Rozpoczęcia (*):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
     <DatePicker fx:id="startDatePickerDialogInterface" promptText="Wybierz datę" GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="Infinity"/>
 
     <Label text="Data Zakończenia:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
     <DatePicker fx:id="endDatePickerDialogInterface" promptText="Wybierz datę (opcjonalnie)" GridPane.rowIndex="3" GridPane.columnIndex="1" prefWidth="Infinity"/>
 
-    <Label text="Cel Podróży:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-    <TextField fx:id="destinationFieldDialog" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+    <Label text="Krótki Cel Podróży:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+    <TextField fx:id="destinationFieldDialog" promptText="np. Warszawa - dostawa X" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+    <Label text="Szczegółowy Cel/Opis:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+    <TextField fx:id="purposeFieldDialog" promptText="np. Dostawa sprzętu dla Klienta Y" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+    <Label text="Status Przypisania:" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="statusComboBoxDialog" promptText="Wybierz status" GridPane.rowIndex="6" GridPane.columnIndex="1" prefWidth="Infinity"/>
+
+    <Label text="Przebieg Początkowy:" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+    <TextField fx:id="startMileageFieldDialog" promptText="np. 150000 (opcjonalnie)" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+    <Label text="Przebieg Końcowy:" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+    <TextField fx:id="endMileageFieldDialog" promptText="np. 150500 (opcjonalnie)" GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+
+    <Label text="Notatki do Przypisania:" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+    <TextArea fx:id="notesTextAreaDialog" promptText="Dodatkowe informacje o zadaniu..." GridPane.rowIndex="9" GridPane.columnIndex="1" prefHeight="80" wrapText="true"/>
 </GridPane>
