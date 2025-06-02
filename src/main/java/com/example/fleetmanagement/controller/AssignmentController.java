@@ -32,14 +32,15 @@ public class AssignmentController {
     @FXML private TableColumn<Assignment, String> statusTableColumn;
     @FXML private TableColumn<Assignment, String> purposeTableColumn;
 
-
     private AssignmentDao assignmentDao;
     private VehicleDao vehicleDao;
     private DriverDao driverDao;
 
     private ObservableList<Assignment> assignmentList;
 
-    private final ObservableList<String> assignmentStatuses = FXCollections.observableArrayList("Zaplanowane", "W trakcie", "Zakończone", "Anulowane", "Opóźnione", "Problem");
+    private final ObservableList<String> assignmentStatuses = FXCollections.observableArrayList(
+            "Zaplanowane", "W trakcie", "Zakończone", "Anulowane", "Opóźnione", "Problem"
+    );
 
     public void initialize() {
         assignmentDao = new AssignmentDao();
@@ -96,7 +97,6 @@ public class AssignmentController {
         startMileageField.setTextFormatter(mileageFormatter1);
         endMileageField.setTextFormatter(mileageFormatter2);
 
-
         if (assignmentToEdit != null) {
             if(assignmentToEdit.getVehicle() != null) {
                 for(Vehicle v : vehicles) { if(v.getId().equals(assignmentToEdit.getVehicle().getId())) { vehicleComboBox.setValue(v); break; } }
@@ -113,7 +113,7 @@ public class AssignmentController {
             endMileageField.setText(assignmentToEdit.getEndMileage() != null ? assignmentToEdit.getEndMileage().toString() : "");
             notesTextArea.setText(assignmentToEdit.getNotes());
             vehicleComboBox.requestFocus();
-        } else { // Dodawanie
+        } else {
             startDatePicker.setValue(LocalDate.now());
             statusComboBox.setValue("Zaplanowane");
             vehicleComboBox.requestFocus();
@@ -125,25 +125,44 @@ public class AssignmentController {
         assignment.setDriver(((ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog")).getValue());
         assignment.setStartDate(((DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface")).getValue());
         assignment.setEndDate(((DatePicker) dialogPaneContent.lookup("#endDatePickerDialogInterface")).getValue());
-        assignment.setDestination(((TextField) dialogPaneContent.lookup("#destinationFieldDialog")).getText().trim());
 
         TextField destinationField = (TextField) dialogPaneContent.lookup("#destinationFieldDialog");
-        String destinationContent = destinationField.getText();
-
-        if (destinationContent != null) {
-            destinationContent = destinationContent.trim();
-            assignment.setDestination(destinationContent.isEmpty() ? null : destinationContent);
+        String destinationText = destinationField.getText();
+        if (destinationText != null) {
+            destinationText = destinationText.trim();
+            assignment.setDestination(destinationText.isEmpty() ? null : destinationText);
         } else {
             assignment.setDestination(null);
         }
 
+        TextField purposeField = (TextField) dialogPaneContent.lookup("#purposeFieldDialog");
+        String purposeText = purposeField.getText();
+        if (purposeText != null) {
+            purposeText = purposeText.trim();
+            assignment.setPurpose(purposeText.isEmpty() ? null : purposeText);
+        } else {
+            assignment.setPurpose(null);
+        }
+
         assignment.setStatus(((ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog")).getValue());
 
-        String startMileageStr = ((TextField) dialogPaneContent.lookup("#startMileageFieldDialog")).getText().trim();
-        assignment.setStartMileage(startMileageStr.isEmpty() ? null : Integer.parseInt(startMileageStr));
+        TextField startMileageField = (TextField) dialogPaneContent.lookup("#startMileageFieldDialog");
+        String startMileageStr = startMileageField.getText();
+        if (startMileageStr != null) {
+            startMileageStr = startMileageStr.trim();
+            assignment.setStartMileage(startMileageStr.isEmpty() ? null : Integer.parseInt(startMileageStr));
+        } else {
+            assignment.setStartMileage(null);
+        }
 
-        String endMileageStr = ((TextField) dialogPaneContent.lookup("#endMileageFieldDialog")).getText().trim();
-        assignment.setEndMileage(endMileageStr.isEmpty() ? null : Integer.parseInt(endMileageStr));
+        TextField endMileageField = (TextField) dialogPaneContent.lookup("#endMileageFieldDialog");
+        String endMileageStr = endMileageField.getText();
+        if (endMileageStr != null) {
+            endMileageStr = endMileageStr.trim();
+            assignment.setEndMileage(endMileageStr.isEmpty() ? null : Integer.parseInt(endMileageStr));
+        } else {
+            assignment.setEndMileage(null);
+        }
 
         TextArea notesTextArea = (TextArea) dialogPaneContent.lookup("#notesTextAreaDialog");
         String notesContent = notesTextArea.getText();
@@ -155,50 +174,61 @@ public class AssignmentController {
         }
     }
 
-    private boolean validateDialogInput(GridPane dialogPaneContent) {
+    private boolean validateDialogInput(GridPane dialogPaneContent, Assignment currentAssignment) {
         StringBuilder errorMessage = new StringBuilder();
-        if (((ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog")).getValue() == null) {
-            errorMessage.append("Należy wybrać pojazd.\n");
-        }
-        if (((ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog")).getValue() == null) {
-            errorMessage.append("Należy wybrać kierowcę.\n");
-        }
+        ComboBox<Vehicle> vehicleComboBox = (ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog");
+        ComboBox<Driver> driverComboBox = (ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog");
         DatePicker startDatePicker = (DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface");
-        if (startDatePicker.getValue() == null) {
-            errorMessage.append("Należy wybrać datę rozpoczęcia.\n");
-        }
         DatePicker endDatePicker = (DatePicker) dialogPaneContent.lookup("#endDatePickerDialogInterface");
-        if (startDatePicker.getValue() != null && endDatePicker.getValue() != null &&
-                endDatePicker.getValue().isBefore(startDatePicker.getValue())) {
-            errorMessage.append("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.\n");
-        }
         TextField destinationField = (TextField) dialogPaneContent.lookup("#destinationFieldDialog");
-        if (destinationField.getText() == null || destinationField.getText().trim().isEmpty()) {
-            errorMessage.append("Krótki cel podróży jest wymagany.\n");
-        }
         ComboBox<String> statusComboBox = (ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog");
-        if(statusComboBox.getValue() == null || statusComboBox.getValue().trim().isEmpty()) {
-            errorMessage.append("Status przypisania jest wymagany.\n");
-        }
-
         TextField startMileageField = (TextField) dialogPaneContent.lookup("#startMileageFieldDialog");
         TextField endMileageField = (TextField) dialogPaneContent.lookup("#endMileageFieldDialog");
+
+        Vehicle selectedVehicle = vehicleComboBox.getValue();
+        Driver selectedDriver = driverComboBox.getValue();
+        LocalDate startDate = startDatePicker.getValue();
+        LocalDate endDate = endDatePicker.getValue();
+
+        if (selectedVehicle == null) errorMessage.append("Należy wybrać pojazd.\n");
+        if (selectedDriver == null) errorMessage.append("Należy wybrać kierowcę.\n");
+        if (startDate == null) errorMessage.append("Należy wybrać datę rozpoczęcia.\n");
+        if (startDate != null && endDate != null && endDate.isBefore(startDate))
+            errorMessage.append("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.\n");
+        if (destinationField.getText() == null || destinationField.getText().trim().isEmpty())
+            errorMessage.append("Krótki cel podróży jest wymagany.\n");
+        if(statusComboBox.getValue() == null || statusComboBox.getValue().trim().isEmpty())
+            errorMessage.append("Status przypisania jest wymagany.\n");
+
         Integer startM = null, endM = null;
-
-        try {
-            if(!startMileageField.getText().trim().isEmpty()) startM = Integer.parseInt(startMileageField.getText().trim());
-            if(startM != null && startM < 0) errorMessage.append("Przebieg początkowy nie może być ujemny.\n");
-        } catch (NumberFormatException e) { errorMessage.append("Przebieg początkowy musi być liczbą.\n"); }
-
-        try {
-            if(!endMileageField.getText().trim().isEmpty()) endM = Integer.parseInt(endMileageField.getText().trim());
-            if(endM != null && endM < 0) errorMessage.append("Przebieg końcowy nie może być ujemny.\n");
-        } catch (NumberFormatException e) { errorMessage.append("Przebieg końcowy musi być liczbą.\n"); }
-
+        String startMileageStr = startMileageField.getText();
+        if (startMileageStr != null && !startMileageStr.trim().isEmpty()) {
+            try { startM = Integer.parseInt(startMileageStr.trim());
+                if(startM < 0) errorMessage.append("Przebieg początkowy nie może być ujemny.\n");
+            } catch (NumberFormatException e) { errorMessage.append("Przebieg początkowy musi być liczbą.\n"); }
+        }
+        String endMileageStr = endMileageField.getText();
+        if (endMileageStr != null && !endMileageStr.trim().isEmpty()) {
+            try { endM = Integer.parseInt(endMileageStr.trim());
+                if(endM < 0) errorMessage.append("Przebieg końcowy nie może być ujemny.\n");
+            } catch (NumberFormatException e) { errorMessage.append("Przebieg końcowy musi być liczbą.\n"); }
+        }
         if(startM != null && endM != null && endM < startM) {
             errorMessage.append("Przebieg końcowy nie może być mniejszy niż początkowy.\n");
         }
 
+        if (selectedVehicle != null && startDate != null) {
+            Long currentAssignmentId = (currentAssignment != null) ? currentAssignment.getId() : null;
+            if (assignmentDao.hasOverlappingAssignmentForVehicle(selectedVehicle.getId(), startDate, endDate, currentAssignmentId)) {
+                errorMessage.append("Wybrany pojazd jest już przypisany w pokrywającym się terminie.\n");
+            }
+        }
+        if (selectedDriver != null && startDate != null) {
+            Long currentAssignmentId = (currentAssignment != null) ? currentAssignment.getId() : null;
+            if (assignmentDao.hasOverlappingAssignmentForDriver(selectedDriver.getId(), startDate, endDate, currentAssignmentId)) {
+                errorMessage.append("Wybrany kierowca jest już przypisany w pokrywającym się terminie.\n");
+            }
+        }
 
         if (errorMessage.length() > 0) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -228,8 +258,8 @@ public class AssignmentController {
 
             Optional<ButtonType> result = dialog.showAndWait();
             if (result.isPresent() && result.get() == okButtonType) {
-                if (validateDialogInput(dialogPaneContent)) {
-                    Assignment newAssignment = new Assignment(); // Domyślny status i creationDate z @PrePersist
+                if (validateDialogInput(dialogPaneContent, null)) {
+                    Assignment newAssignment = new Assignment();
                     updateAssignmentFromDialog(newAssignment, dialogPaneContent);
                     try {
                         assignmentDao.save(newAssignment);
@@ -267,7 +297,7 @@ public class AssignmentController {
 
             Optional<ButtonType> result = dialog.showAndWait();
             if (result.isPresent() && result.get() == okButtonType) {
-                if (validateDialogInput(dialogPaneContent)) {
+                if (validateDialogInput(dialogPaneContent, selectedAssignment)) {
                     updateAssignmentFromDialog(selectedAssignment, dialogPaneContent);
                     try {
                         assignmentDao.update(selectedAssignment);
