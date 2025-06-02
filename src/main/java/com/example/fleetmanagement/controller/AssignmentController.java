@@ -43,13 +43,14 @@ public class AssignmentController {
     private VehicleDao vehicleDao;
     private DriverDao driverDao;
 
-    private ObservableList<Assignment> assignmentList;
+    private ObservableList<Assignment> assignmentList; // Obserwowalna lista przypisań dla tabeli
 
     private final ObservableList<String> assignmentStatuses = FXCollections.observableArrayList(
             "Zaplanowane", "W trakcie", "Zakończone", "Anulowane", "Opóźnione", "Problem"
     );
 
     public void initialize() {
+        // Tworzenie instancji wszystkich potrzebnych DAO.
         assignmentDao = new AssignmentDao();
         vehicleDao = new VehicleDao();
         driverDao = new DriverDao();
@@ -84,6 +85,7 @@ public class AssignmentController {
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Assignment assignmentToEdit) {
+        // Pobranie referencji do kontrolek z AssignmentDialog.fxml.
         ComboBox<Vehicle> vehicleComboBox = (ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog");
         ComboBox<Driver> driverComboBox = (ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog");
         DatePicker startDatePicker = (DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface");
@@ -95,6 +97,7 @@ public class AssignmentController {
         TextField endMileageField = (TextField) dialogPaneContent.lookup("#endMileageFieldDialog");
         TextArea notesTextArea = (TextArea) dialogPaneContent.lookup("#notesTextAreaDialog");
 
+        // Ładowanie danych do ComboBoxów.
         ObservableList<Vehicle> vehicles = FXCollections.observableArrayList(vehicleDao.findAll());
         vehicleComboBox.setItems(vehicles);
         ObservableList<Driver> drivers = FXCollections.observableArrayList(driverDao.findAll());
@@ -117,7 +120,7 @@ public class AssignmentController {
         startMileageField.setTextFormatter(mileageFormatter1);
         endMileageField.setTextFormatter(mileageFormatter2);
 
-        if (assignmentToEdit != null) {
+        if (assignmentToEdit != null) { // Jeśli edycja/szczegóły
             if(assignmentToEdit.getVehicle() != null) {
                 for(Vehicle v : vehicles) { if(v.getId().equals(assignmentToEdit.getVehicle().getId())) { vehicleComboBox.setValue(v); break; } }
             }
@@ -133,7 +136,7 @@ public class AssignmentController {
             endMileageField.setText(assignmentToEdit.getEndMileage() != null ? assignmentToEdit.getEndMileage().toString() : "");
             notesTextArea.setText(assignmentToEdit.getNotes());
             vehicleComboBox.requestFocus();
-        } else {
+        } else { // Dodawanie
             startDatePicker.setValue(LocalDate.now());
             statusComboBox.setValue("Zaplanowane");
             vehicleComboBox.requestFocus();
@@ -141,6 +144,7 @@ public class AssignmentController {
     }
 
     private void updateAssignmentFromDialog(Assignment assignment, GridPane dialogPaneContent) {
+        // Pobieranie wartości z kontrolek dialogu i ustawianie ich w obiekcie `assignment`.
         assignment.setVehicle(((ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog")).getValue());
         assignment.setDriver(((ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog")).getValue());
         assignment.setStartDate(((DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface")).getValue());
@@ -172,9 +176,11 @@ public class AssignmentController {
         } else {
             assignment.setNotes(null);
         }
+        // creationDate jest obsługiwane przez @PrePersist w encji lub przez bazę
     }
 
     private boolean validateDialogInput(GridPane dialogPaneContent, Assignment currentAssignment) {
+        // Pobranie referencji do kontrolek.
         StringBuilder errorMessage = new StringBuilder();
         ComboBox<Vehicle> vehicleComboBox = (ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog");
         ComboBox<Driver> driverComboBox = (ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog");
@@ -219,12 +225,15 @@ public class AssignmentController {
             errorMessage.append("Przebieg końcowy nie może być mniejszy niż początkowy.\n");
         }
 
+        // Walidacja pokrywania się terminów (biznesowa).
         Long currentAssignmentId = (currentAssignment != null) ? currentAssignment.getId() : null;
+        // Sprawdzenie dla pojazdu
         if (selectedVehicle != null && startDate != null) {
             if (assignmentDao.hasOverlappingAssignmentForVehicle(selectedVehicle.getId(), startDate, endDate, currentAssignmentId)) {
                 errorMessage.append("Wybrany pojazd ("+selectedVehicle.getRegistrationNumber()+") jest już przypisany w pokrywającym się terminie.\n");
             }
         }
+        // Sprawdzenie dla kierowcy
         if (selectedDriver != null && startDate != null) {
             if (assignmentDao.hasOverlappingAssignmentForDriver(selectedDriver.getId(), startDate, endDate, currentAssignmentId)) {
                 errorMessage.append("Wybrany kierowca ("+selectedDriver.getLastName()+") jest już przypisany w pokrywającym się terminie.\n");

@@ -50,7 +50,7 @@ public class Vehicle {
     private String notes;
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Assignment> assignments = new HashSet<>();
+    private Set<Assignment> assignments = new HashSet<>();// HashSet zapewnia, że elementy w kolekcji są unikalne.
 
     public Vehicle() {
         this.status = "Dostępny"; // Domyślny status
@@ -63,7 +63,7 @@ public class Vehicle {
         this.productionYear = productionYear;
         this.vin = vin;
         this.fuelType = fuelType;
-        this.status = (status != null && !status.isEmpty()) ? status : "Dostępny";
+        this.status = (status != null && !status.isEmpty()) ? status : "Dostępny";// Jeśli podany status jest null/pusty, użyj domyślnego.
         this.mileage = mileage;
         this.purchaseDate = purchaseDate;
         this.lastServiceDate = lastServiceDate;

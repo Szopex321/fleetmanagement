@@ -39,12 +39,41 @@ public class DriverController {
             "Aktywny", "Na urlopie", "Zwolnienie lekarskie", "Szkolenie", "Niedostępny", "Zwolniony"
     );
 
+//            (\\+?\\d{1,3}[- ]?)?: To jest opcjonalna grupa (ze względu na ? na końcu) dla kodu kraju.
+//            \\+?: Opcjonalny znak + (plus) na początku kodu kraju. \\ jest znakiem ucieczki dla +, a ? czyni go opcjonalnym.
+//            \\d{1,3}: Dopasowuje od jednej do trzech cyfr (\\d to cyfra, {1,3} to kwantyfikator "od 1 do 3 razy"). To jest kod kraju.
+//            [- ]?: Opcjonalny separator po kodzie kraju – myślnik LUB spacja. [] definiuje zestaw znaków, a ? czyni go opcjonalnym.
+//            \\d{3}: Dopasowuje dokładnie trzy cyfry (pierwsza część numeru lokalnego).
+//            [- ]?: Znowu opcjonalny separator (myślnik lub spacja).
+//            \\d{3}: Dopasowuje kolejne trzy cyfry.
+//            [- ]?: I znowu opcjonalny separator.
+//            \\d{3}: Dopasowuje ostatnie trzy cyfry.
+//            $: Dopasowuje koniec ciągu (linii). Oznacza, że po ostatniej grupie cyfr nic więcej nie może wystąpić.
     private static final Pattern PHONE_PATTERN = Pattern.compile("^(\\+?\\d{1,3}[- ]?)?\\d{3}[- ]?\\d{3}[- ]?\\d{3}$|^\\d{9}$");
+
+//          : Początek ciągu.
+//          [a-zA-Z0-9._%+-]+: Dopasowuje część lokalną adresu email (to co przed znakiem @).
+//          [a-zA-Z0-9._%+-]: Zestaw dozwolonych znaków. Obejmuje:
+//          a-z: małe litery.
+//          A-Z: duże litery.
+//          0-9: cyfry.
+//          ._%+-: kropka, podkreślenie, procent, plus, myślnik.
+//          +: Kwantyfikator oznaczający "jedno lub więcej wystąpień" poprzedzającego zestawu znaków. Część lokalna nie może być pusta.
+//          @: Dopasowuje dosłownie znak @ (małpa), który oddziela część lokalną od domeny.
+//          [a-zA-Z0-9.-]+: Dopasowuje nazwę domeny (bez domeny najwyższego poziomu, np. example w example.com).
+//          [a-zA-Z0-9.-]: Zestaw dozwolonych znaków dla nazwy domeny. Obejmuje litery, cyfry, kropkę i myślnik.
+//          +: Nazwa domeny nie może być pusta.
+//          \\.: Dopasowuje dosłownie znak . (kropka), który oddziela nazwę domeny od domeny najwyższego poziomu. \ jest znakiem ucieczki dla ., ponieważ . w regexie ma specjalne znaczenie (dopasowuje dowolny znak).
+//          [a-zA-Z]{2,6}: Dopasowuje domenę najwyższego poziomu (TLD), np. com, org, pl, info.
+//          [a-zA-Z]: Tylko litery (małe lub duże).
+//          {2,6}: Kwantyfikator oznaczający "od dwóch do sześciu wystąpień" poprzedzającego zestawu znaków. Oznacza to, że TLD musi mieć od 2 do 6 liter. (Uwaga: istnieją TLD dłuższe niż 6 znaków, np. .museum, .travel, a także TLD z cyframi lub IDN, więc ten fragment nie jest w pełni uniwersalny dla wszystkich możliwych TLD, ale jest często spotykany).
+//          $: Koniec ciągu.
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
 
     public void initialize() {
         driverDao = new DriverDao();
 
+        // Konfiguracja kolumn tabeli dla kierowców.
         firstNameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         lastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         licenseNumberColumn.setCellValueFactory(new PropertyValueFactory<>("licenseNumber"));
@@ -53,6 +82,7 @@ public class DriverController {
 
         loadDrivers();
 
+        // Listener aktywacji/dezaktywacji przycisków na podstawie zaznaczenia w tabeli.
         driverTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             booleanItemSelected = (newSelection != null);
             showDriverDetailsButton.setDisable(!booleanItemSelected);
@@ -72,6 +102,7 @@ public class DriverController {
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Driver driverToEdit) {
+        // Pobranie referencji do kontrolek z DriverDialog.fxml za pomocą lookup().
         TextField firstNameField = (TextField) dialogPaneContent.lookup("#firstNameFieldDialog");
         TextField lastNameField = (TextField) dialogPaneContent.lookup("#lastNameFieldDialog");
         TextField licenseNumberField = (TextField) dialogPaneContent.lookup("#licenseNumberFieldDialog");
@@ -85,7 +116,8 @@ public class DriverController {
 
         statusComboBox.setItems(driverStatuses);
 
-        if (driverToEdit != null) {
+        if (driverToEdit != null) {  // Jeśli edycja/szczegóły (obiekt Driver przekazany)
+            // Wypełnianie pól formularza danymi z obiektu driverToEdit.
             firstNameField.setText(driverToEdit.getFirstName());
             lastNameField.setText(driverToEdit.getLastName());
             licenseNumberField.setText(driverToEdit.getLicenseNumber());
@@ -97,7 +129,8 @@ public class DriverController {
             medicalCheckDatePicker.setValue(driverToEdit.getMedicalCheckExpiryDate());
             addressTextArea.setText(driverToEdit.getAddress());
             firstNameField.requestFocus();
-        } else {
+        } else { // Jeśli dodawanie nowego kierowcy
+            // Ustawianie wartości domyślnych.
             statusComboBox.setValue("Aktywny");
             employmentDatePicker.setValue(LocalDate.now());
             firstNameField.requestFocus();
@@ -105,6 +138,7 @@ public class DriverController {
     }
 
     private void updateDriverFromDialog(Driver driver, GridPane dialogPaneContent) {
+        // Pobieranie wartości z kontrolek dialogu i ustawianie ich w obiekcie `driver`.
         driver.setFirstName(((TextField) dialogPaneContent.lookup("#firstNameFieldDialog")).getText());
         driver.setLastName(((TextField) dialogPaneContent.lookup("#lastNameFieldDialog")).getText());
         driver.setLicenseNumber(((TextField) dialogPaneContent.lookup("#licenseNumberFieldDialog")).getText());
@@ -132,6 +166,7 @@ public class DriverController {
 
     private boolean validateDialogInput(GridPane dialogPaneContent) {
         StringBuilder errorMessage = new StringBuilder();
+        // Pobranie kontrolek do walidacji.
         TextField firstNameField = (TextField) dialogPaneContent.lookup("#firstNameFieldDialog");
         TextField lastNameField = (TextField) dialogPaneContent.lookup("#lastNameFieldDialog");
         TextField licenseNumberField = (TextField) dialogPaneContent.lookup("#licenseNumberFieldDialog");

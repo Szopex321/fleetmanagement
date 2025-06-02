@@ -44,8 +44,9 @@ public class VehicleController {
     );
 
     public void initialize() {
-        vehicleDao = new VehicleDao();
+        vehicleDao = new VehicleDao(); // Tworzenie instancji DAO do komunikacji z bazą (DAO data acces object)
 
+        //Konfiguracja kolumn tabeli: określenie, które pole obiektu Vehicle ma być wyświetlane w danej kolumnie.
         makeColumn.setCellValueFactory(new PropertyValueFactory<>("make"));
         modelColumn.setCellValueFactory(new PropertyValueFactory<>("model"));
         regNumberColumn.setCellValueFactory(new PropertyValueFactory<>("registrationNumber"));
@@ -57,7 +58,7 @@ public class VehicleController {
 
         // Listener do aktywacji/dezaktywacji przycisków
         vehicleTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            booleanItemSelected = (newSelection != null);
+            booleanItemSelected = (newSelection != null); // Ustawia flagę, czy coś jest zaznaczone.
             showVehicleDetailsButton.setDisable(!booleanItemSelected);
             if (editVehicleButton != null) editVehicleButton.setDisable(!booleanItemSelected);
             if (deleteVehicleButton != null) deleteVehicleButton.setDisable(!booleanItemSelected);
@@ -71,12 +72,13 @@ public class VehicleController {
     private boolean booleanItemSelected = false; // Flaga pomocnicza
 
     private void loadVehicles() {
-        vehicleList = FXCollections.observableArrayList(vehicleDao.findAll());
-        vehicleTable.setItems(vehicleList);
+        vehicleList = FXCollections.observableArrayList(vehicleDao.findAll());// Pobranie wszystkich pojazdów z bazy za pomocą DAO.
+        vehicleTable.setItems(vehicleList);// Ustawienie pobranej listy jako źródła danych dla tabeli.
         vehicleTable.getSelectionModel().clearSelection(); // Wyczyść zaznaczenie po załadowaniu
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Vehicle vehicleToEdit) {
+        // Pobieranie referencji do poszczególnych kontrolek z dialogu za pomocą lookup().
         TextField makeField = (TextField) dialogPaneContent.lookup("#makeFieldDialog");
         TextField modelField = (TextField) dialogPaneContent.lookup("#modelFieldDialog");
         TextField regNumberField = (TextField) dialogPaneContent.lookup("#regNumberFieldDialog");
@@ -93,6 +95,8 @@ public class VehicleController {
         fuelTypeComboBox.setItems(fuelTypes);
         statusComboBox.setItems(vehicleStatuses);
 
+        //Ustawienie TextFormatter dla pola przebiegu, aby akceptowało tylko cyfry.
+        // \\d* zeru lub wiecej cyfr
         mileageField.setTextFormatter(new TextFormatter<>(change -> {
             if (change.getControlNewText().matches("\\d*")) {
                 return change;
@@ -101,6 +105,7 @@ public class VehicleController {
         }));
 
         if (vehicleToEdit != null) {
+            // Wypełnianie pól formularza wartościami z obiektu vehicleToEdit.
             makeField.setText(vehicleToEdit.getMake());
             modelField.setText(vehicleToEdit.getModel());
             regNumberField.setText(vehicleToEdit.getRegistrationNumber());
@@ -115,12 +120,14 @@ public class VehicleController {
             notesTextArea.setText(vehicleToEdit.getNotes());
             makeField.requestFocus();
         } else {
+            // Ustawianie wartości domyślnych.
             yearSpinner.getValueFactory().setValue(java.time.LocalDate.now().getYear());
             statusComboBox.setValue("Dostępny");
             makeField.requestFocus();
         }
     }
 
+    // Pobiera wartości z kontrolek dialogu i ustawia je w obiekcie `vehicle`.
     private void updateVehicleFromDialog(Vehicle vehicle, GridPane dialogPaneContent) {
         vehicle.setMake(((TextField) dialogPaneContent.lookup("#makeFieldDialog")).getText());
         vehicle.setModel(((TextField) dialogPaneContent.lookup("#modelFieldDialog")).getText());
@@ -128,7 +135,7 @@ public class VehicleController {
         vehicle.setProductionYear(((Spinner<Integer>) dialogPaneContent.lookup("#yearSpinnerDialog")).getValue());
 
         String vinText = ((TextField) dialogPaneContent.lookup("#vinFieldDialog")).getText();
-        if(vinText != null) {
+        if(vinText != null) { // Bezpieczne pobieranie i trimowanie tekstu (uniknięcie NullPointerException)
             vinText = vinText.trim();
             vehicle.setVin(vinText.isEmpty() ? null : vinText);
         } else {
@@ -160,6 +167,7 @@ public class VehicleController {
         }
     }
 
+    // Sprawdza, czy dane wprowadzone w dialogu są poprawne.
     private boolean validateDialogInput(GridPane dialogPaneContent) {
         StringBuilder errorMessage = new StringBuilder();
         TextField makeField = (TextField) dialogPaneContent.lookup("#makeFieldDialog");
@@ -189,6 +197,7 @@ public class VehicleController {
             } catch (NumberFormatException e) { errorMessage.append("Przebieg musi być poprawną liczbą całkowitą.\n"); }
         }
 
+        // Walidacja dat
         LocalDate purchaseDate = purchaseDatePicker.getValue();
         LocalDate lastServiceDate = lastServiceDatePicker.getValue();
         LocalDate insuranceExpiryDateVal = insuranceExpiryDatePicker.getValue();
@@ -209,6 +218,7 @@ public class VehicleController {
             errorMessage.append("Data ostatniego serwisu nie może być wcześniejsza niż data zakupu.\n");
         }
 
+        // Jeśli zebrano jakieś błędy
         if (errorMessage.length() > 0) {
             showError("Błąd walidacji danych", errorMessage.toString());
             return false;
@@ -237,7 +247,7 @@ public class VehicleController {
                     updateVehicleFromDialog(newVehicle, dialogPaneContent);
                     try {
                         vehicleDao.save(newVehicle);
-                        loadVehicles();
+                        loadVehicles(); // przeładowanie widoku listy
                     } catch (Exception e) {
                         showError("Błąd dodawania pojazdu", "Nie udało się dodać pojazdu. Sprawdź unikalność Nr Rej. i VIN.\nBłąd: " + e.getMessage());
                         e.printStackTrace();
@@ -275,7 +285,7 @@ public class VehicleController {
                     updateVehicleFromDialog(selectedVehicle, dialogPaneContent);
                     try {
                         vehicleDao.update(selectedVehicle);
-                        loadVehicles();
+                        loadVehicles(); // przeładowanie widoku listy
                     } catch (Exception e) {
                         showError("Błąd edycji pojazdu", "Nie udało się zaktualizować pojazdu. Sprawdź unikalność Nr Rej. i VIN.\nBłąd: " + e.getMessage());
                         e.printStackTrace();
@@ -301,7 +311,7 @@ public class VehicleController {
             GridPane dialogPaneContent = loader.load();
 
             setupDialogControls(dialogPaneContent, selectedVehicle);
-            setDialogControlsReadOnly(dialogPaneContent, true);
+            setDialogControlsReadOnly(dialogPaneContent, true); // ustawia że jest dane tylko do odczytu
 
             Dialog<ButtonType> dialog = new Dialog<>();
             dialog.setTitle("Szczegóły Pojazdu: " + selectedVehicle.getRegistrationNumber());
@@ -366,6 +376,7 @@ public class VehicleController {
         loadVehicles();
     }
 
+    // Prywatne metody ułatwiające wyświetlanie standardowych okienek Alert.
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

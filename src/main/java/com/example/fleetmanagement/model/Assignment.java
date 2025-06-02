@@ -78,6 +78,8 @@ public class Assignment {
         // creationDate jest ustawiane przez bazę danych lub @PrePersist
     }
 
+    // Adnotacja @PrePersist: Metoda oznaczona tą adnotacją zostanie automatycznie wywołana
+    // przez Hibernate tuż przed zapisaniem nowego obiektu do bazy danych (przed operacją persist).
     @PrePersist // Ustawienie daty utworzenia przed zapisem do bazy
     protected void onCreate() {
         creationDate = LocalDateTime.now();
@@ -113,7 +115,7 @@ public class Assignment {
 
     // Metody pomocnicze dla TableView (wyświetlanie obiektów Vehicle i Driver)
     public String getVehicleDisplay() {
-        return vehicle != null ? vehicle.toString() : "BRAK";
+        return vehicle != null ? vehicle.toString() : "BRAK";// Zwraca tekstową reprezentację pojazdu lub "BRAK", jeśli pojazd nie jest przypisany.
     }
     public String getDriverDisplay() {
         return driver != null ? driver.toString() : "BRAK";

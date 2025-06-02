@@ -45,7 +45,7 @@ public class Driver {
     private String address;
 
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Assignment> assignments = new HashSet<>();
+    private Set<Assignment> assignments = new HashSet<>(); // Kolekcja przypisań dla tego kierowcy.
 
     public Driver() {
         this.status = "Aktywny";
