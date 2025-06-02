@@ -31,6 +31,7 @@
             </padding>
             <Button onAction="#handleAddAssignment" text="Dodaj Przypisanie..." />
             <Button onAction="#handleEditAssignment" text="Edytuj Zaznaczone..." />
+            <Button fx:id="showAssignmentDetailsButton" onAction="#handleShowAssignmentDetails" text="Pokaż Szczegóły..." />
             <Button onAction="#handleDeleteAssignment" text="Usuń Zaznaczone" />
             <Button onAction="#handleRefresh" text="Odśwież Listę" />
         </HBox>

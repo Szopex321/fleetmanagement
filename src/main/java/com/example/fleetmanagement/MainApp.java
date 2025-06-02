@@ -15,18 +15,6 @@ public class MainApp extends Application {
         // Inicjalizacja Hibernate przy starcie aplikacji
         HibernateUtil.getSessionFactory();
 
-        Alert toDoAlert = new Alert(Alert.AlertType.INFORMATION);
-        toDoAlert.setTitle("Informacja Rozwojowa");
-        toDoAlert.setHeaderText("Lista rzeczy do zrobienia / Uwagi:");
-        toDoAlert.setContentText(
-                "- Dokończyć walidację danych we wszystkich formularzach.\n" +
-                        "- wyswietlac wieksza ilosc rzeczy w widokach.\n" +
-                        "- przeniec wyjatki do osobnych klas.\n" +
-                        "- Przygotować kompletną dokumentację techniczną."
-        );
-
-        toDoAlert.showAndWait();
-
         FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("MainView.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 800, 600);
         stage.setTitle("System Zarządzania Flotą");

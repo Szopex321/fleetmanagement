@@ -30,6 +30,7 @@
             </padding>
             <Button onAction="#handleAddVehicle" text="Dodaj Pojazd..." />
             <Button onAction="#handleEditVehicle" text="Edytuj Zaznaczony..." />
+            <Button fx:id="showVehicleDetailsButton" onAction="#handleShowVehicleDetails" text="Pokaż Szczegóły..." />
             <Button onAction="#handleDeleteVehicle" text="Usuń Zaznaczony" />
             <Button onAction="#handleRefresh" text="Odśwież Listę" />
         </HBox>

@@ -7,9 +7,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 
 import java.io.IOException;
@@ -26,16 +28,19 @@ public class DriverController {
     @FXML private TableColumn<Driver, String> statusTableColumn;
     @FXML private TableColumn<Driver, String> phoneTableColumn;
 
+    @FXML private Button showDriverDetailsButton;
+    @FXML private Button editDriverButton;
+    @FXML private Button deleteDriverButton;
 
     private DriverDao driverDao;
     private ObservableList<Driver> driverList;
 
-    private final ObservableList<String> driverStatuses = FXCollections.observableArrayList("Aktywny", "Na urlopie", "Zwolnienie lekarskie", "Szkolenie", "Niedostępny", "Zwolniony");
-
+    private final ObservableList<String> driverStatuses = FXCollections.observableArrayList(
+            "Aktywny", "Na urlopie", "Zwolnienie lekarskie", "Szkolenie", "Niedostępny", "Zwolniony"
+    );
 
     private static final Pattern PHONE_PATTERN = Pattern.compile("^(\\+?\\d{1,3}[- ]?)?\\d{3}[- ]?\\d{3}[- ]?\\d{3}$|^\\d{9}$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
-
 
     public void initialize() {
         driverDao = new DriverDao();
@@ -47,11 +52,23 @@ public class DriverController {
         phoneTableColumn.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
 
         loadDrivers();
+
+        driverTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            booleanItemSelected = (newSelection != null);
+            showDriverDetailsButton.setDisable(!booleanItemSelected);
+            if (editDriverButton != null) editDriverButton.setDisable(!booleanItemSelected);
+            if (deleteDriverButton != null) deleteDriverButton.setDisable(!booleanItemSelected);
+        });
+        showDriverDetailsButton.setDisable(true);
+        if (editDriverButton != null) editDriverButton.setDisable(true);
+        if (deleteDriverButton != null) deleteDriverButton.setDisable(true);
     }
+    private boolean booleanItemSelected = false;
 
     private void loadDrivers() {
         driverList = FXCollections.observableArrayList(driverDao.findAll());
         driverTable.setItems(driverList);
+        driverTable.getSelectionModel().clearSelection();
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Driver driverToEdit) {
@@ -68,7 +85,7 @@ public class DriverController {
 
         statusComboBox.setItems(driverStatuses);
 
-        if (driverToEdit != null) { // Edycja
+        if (driverToEdit != null) {
             firstNameField.setText(driverToEdit.getFirstName());
             lastNameField.setText(driverToEdit.getLastName());
             licenseNumberField.setText(driverToEdit.getLicenseNumber());
@@ -80,9 +97,9 @@ public class DriverController {
             medicalCheckDatePicker.setValue(driverToEdit.getMedicalCheckExpiryDate());
             addressTextArea.setText(driverToEdit.getAddress());
             firstNameField.requestFocus();
-        } else { // Dodawanie
+        } else {
             statusComboBox.setValue("Aktywny");
-            employmentDatePicker.setValue(LocalDate.now()); // Domyślna data zatrudnienia
+            employmentDatePicker.setValue(LocalDate.now());
             firstNameField.requestFocus();
         }
     }
@@ -92,11 +109,11 @@ public class DriverController {
         driver.setLastName(((TextField) dialogPaneContent.lookup("#lastNameFieldDialog")).getText());
         driver.setLicenseNumber(((TextField) dialogPaneContent.lookup("#licenseNumberFieldDialog")).getText());
 
-        String phone = ((TextField) dialogPaneContent.lookup("#phoneNumberFieldDialog")).getText().trim();
-        driver.setPhoneNumber(phone.isEmpty() ? null : phone);
+        String phone = ((TextField) dialogPaneContent.lookup("#phoneNumberFieldDialog")).getText();
+        driver.setPhoneNumber( (phone!=null && !phone.trim().isEmpty()) ? phone.trim() : null );
 
-        String email = ((TextField) dialogPaneContent.lookup("#emailFieldDialog")).getText().trim();
-        driver.setEmail(email.isEmpty() ? null : email);
+        String email = ((TextField) dialogPaneContent.lookup("#emailFieldDialog")).getText();
+        driver.setEmail( (email!=null && !email.trim().isEmpty()) ? email.trim() : null );
 
         driver.setEmploymentDate(((DatePicker) dialogPaneContent.lookup("#employmentDatePickerDialog")).getValue());
         driver.setStatus(((ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog")).getValue());
@@ -111,8 +128,6 @@ public class DriverController {
         } else {
             driver.setAddress(null);
         }
-
-
     }
 
     private boolean validateDialogInput(GridPane dialogPaneContent) {
@@ -124,34 +139,22 @@ public class DriverController {
         TextField emailField = (TextField) dialogPaneContent.lookup("#emailFieldDialog");
         ComboBox<String> statusComboBox = (ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog");
 
-        if (firstNameField.getText() == null || firstNameField.getText().trim().isEmpty()) {
-            errorMessage.append("Imię jest wymagane.\n");
-        }
-        if (lastNameField.getText() == null || lastNameField.getText().trim().isEmpty()) {
-            errorMessage.append("Nazwisko jest wymagane.\n");
-        }
-        if (licenseNumberField.getText() == null || licenseNumberField.getText().trim().isEmpty()) {
-            errorMessage.append("Numer prawa jazdy jest wymagany.\n");
-        }
-        if (statusComboBox.getValue() == null || statusComboBox.getValue().trim().isEmpty()) {
-            errorMessage.append("Status kierowcy jest wymagany.\n");
-        }
-        String phone = phoneNumberField.getText().trim();
-        if (!phone.isEmpty() && !PHONE_PATTERN.matcher(phone).matches()) {
+        if (firstNameField.getText() == null || firstNameField.getText().trim().isEmpty()) errorMessage.append("Imię jest wymagane.\n");
+        if (lastNameField.getText() == null || lastNameField.getText().trim().isEmpty()) errorMessage.append("Nazwisko jest wymagane.\n");
+        if (licenseNumberField.getText() == null || licenseNumberField.getText().trim().isEmpty()) errorMessage.append("Numer prawa jazdy jest wymagany.\n");
+        if (statusComboBox.getValue() == null || statusComboBox.getValue().trim().isEmpty()) errorMessage.append("Status kierowcy jest wymagany.\n");
+
+        String phone = phoneNumberField.getText();
+        if (phone != null && !phone.trim().isEmpty() && !PHONE_PATTERN.matcher(phone.trim()).matches()) {
             errorMessage.append("Niepoprawny format numeru telefonu.\n");
         }
-        String email = emailField.getText().trim();
-        if (!email.isEmpty() && !EMAIL_PATTERN.matcher(email).matches()) {
+        String email = emailField.getText();
+        if (email != null && !email.trim().isEmpty() && !EMAIL_PATTERN.matcher(email.trim()).matches()) {
             errorMessage.append("Niepoprawny format adresu email.\n");
         }
 
         if (errorMessage.length() > 0) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Błąd walidacji danych");
-            alert.setHeaderText(null);
-            alert.setContentText(errorMessage.toString());
-            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-            alert.showAndWait();
+            showError("Błąd walidacji danych",errorMessage.toString());
             return false;
         }
         return true;
@@ -162,7 +165,6 @@ public class DriverController {
         try {
             FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("Dialog/DriverDialog.fxml"));
             GridPane dialogPaneContent = loader.load();
-
             setupDialogControls(dialogPaneContent, null);
 
             Dialog<ButtonType> dialog = new Dialog<>();
@@ -175,7 +177,7 @@ public class DriverController {
             Optional<ButtonType> result = dialog.showAndWait();
             if (result.isPresent() && result.get() == okButtonType) {
                 if (validateDialogInput(dialogPaneContent)) {
-                    Driver newDriver = new Driver(); // Używa domyślnego statusu z konstruktora
+                    Driver newDriver = new Driver();
                     updateDriverFromDialog(newDriver, dialogPaneContent);
                     try {
                         driverDao.save(newDriver);
@@ -199,11 +201,9 @@ public class DriverController {
             showAlert("Brak zaznaczenia", "Proszę zaznaczyć kierowcę do edycji.");
             return;
         }
-
         try {
             FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("Dialog/DriverDialog.fxml"));
             GridPane dialogPaneContent = loader.load();
-
             setupDialogControls(dialogPaneContent, selectedDriver);
 
             Dialog<ButtonType> dialog = new Dialog<>();
@@ -233,10 +233,46 @@ public class DriverController {
     }
 
     @FXML
+    private void handleShowDriverDetails() {
+        Driver selectedDriver = driverTable.getSelectionModel().getSelectedItem();
+        if (selectedDriver == null) {
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("Dialog/DriverDialog.fxml"));
+            GridPane dialogPaneContent = loader.load();
+            setupDialogControls(dialogPaneContent, selectedDriver);
+            setDialogControlsReadOnly(dialogPaneContent, true);
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Szczegóły Kierowcy: " + selectedDriver.getFirstName() + " " + selectedDriver.getLastName());
+            dialog.getDialogPane().setContent(dialogPaneContent);
+            ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().add(okButtonType);
+            dialog.setResizable(true);
+            dialog.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Błąd aplikacji", "Nie udało się otworzyć okna szczegółów: " + e.getMessage());
+        }
+    }
+
+    private void setDialogControlsReadOnly(Pane parentPane, boolean readOnly) {
+        for (Node node : parentPane.getChildren()) {
+            if (node instanceof TextField) ((TextField) node).setEditable(!readOnly);
+            else if (node instanceof TextArea) ((TextArea) node).setEditable(!readOnly);
+            else if (node instanceof ComboBox) ((ComboBox<?>) node).setDisable(readOnly);
+            else if (node instanceof DatePicker) ((DatePicker) node).setDisable(readOnly);
+            else if (node instanceof Spinner) ((Spinner<?>) node).setDisable(readOnly);
+            if (node instanceof Pane) setDialogControlsReadOnly((Pane) node, readOnly);
+        }
+    }
+
+    @FXML
     private void handleDeleteDriver() {
         Driver selectedDriver = driverTable.getSelectionModel().getSelectedItem();
         if (selectedDriver == null) {
-            showAlert("Brak zaznaczenia", "Proszę zaznaczyć kierowcę do usunięcia.");
+            showAlert("Brak zaznaczenia", "Proszę zaznaczyć kierowcę do usuniecia.");
             return;
         }
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);

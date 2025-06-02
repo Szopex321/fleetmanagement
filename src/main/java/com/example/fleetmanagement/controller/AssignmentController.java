@@ -11,9 +11,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
 
@@ -31,6 +33,11 @@ public class AssignmentController {
     @FXML private TableColumn<Assignment, String> destinationColumn;
     @FXML private TableColumn<Assignment, String> statusTableColumn;
     @FXML private TableColumn<Assignment, String> purposeTableColumn;
+
+    @FXML private Button showAssignmentDetailsButton;
+    @FXML private Button editAssignmentButton;
+    @FXML private Button deleteAssignmentButton;
+
 
     private AssignmentDao assignmentDao;
     private VehicleDao vehicleDao;
@@ -56,11 +63,24 @@ public class AssignmentController {
         purposeTableColumn.setCellValueFactory(new PropertyValueFactory<>("purpose"));
 
         loadAssignments();
+
+        assignmentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            booleanItemSelected = (newSelection != null);
+            showAssignmentDetailsButton.setDisable(!booleanItemSelected);
+            if(editAssignmentButton != null) editAssignmentButton.setDisable(!booleanItemSelected);
+            if(deleteAssignmentButton != null) deleteAssignmentButton.setDisable(!booleanItemSelected);
+        });
+        showAssignmentDetailsButton.setDisable(true);
+        if(editAssignmentButton != null) editAssignmentButton.setDisable(true);
+        if(deleteAssignmentButton != null) deleteAssignmentButton.setDisable(true);
     }
+
+    private boolean booleanItemSelected = false;
 
     private void loadAssignments() {
         assignmentList = FXCollections.observableArrayList(assignmentDao.findAll());
         assignmentTable.setItems(assignmentList);
+        assignmentTable.getSelectionModel().clearSelection();
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Assignment assignmentToEdit) {
@@ -128,41 +148,21 @@ public class AssignmentController {
 
         TextField destinationField = (TextField) dialogPaneContent.lookup("#destinationFieldDialog");
         String destinationText = destinationField.getText();
-        if (destinationText != null) {
-            destinationText = destinationText.trim();
-            assignment.setDestination(destinationText.isEmpty() ? null : destinationText);
-        } else {
-            assignment.setDestination(null);
-        }
+        assignment.setDestination( (destinationText!=null && !destinationText.trim().isEmpty()) ? destinationText.trim() : null );
 
         TextField purposeField = (TextField) dialogPaneContent.lookup("#purposeFieldDialog");
         String purposeText = purposeField.getText();
-        if (purposeText != null) {
-            purposeText = purposeText.trim();
-            assignment.setPurpose(purposeText.isEmpty() ? null : purposeText);
-        } else {
-            assignment.setPurpose(null);
-        }
+        assignment.setPurpose( (purposeText!=null && !purposeText.trim().isEmpty()) ? purposeText.trim() : null );
 
         assignment.setStatus(((ComboBox<String>) dialogPaneContent.lookup("#statusComboBoxDialog")).getValue());
 
         TextField startMileageField = (TextField) dialogPaneContent.lookup("#startMileageFieldDialog");
         String startMileageStr = startMileageField.getText();
-        if (startMileageStr != null) {
-            startMileageStr = startMileageStr.trim();
-            assignment.setStartMileage(startMileageStr.isEmpty() ? null : Integer.parseInt(startMileageStr));
-        } else {
-            assignment.setStartMileage(null);
-        }
+        assignment.setStartMileage( (startMileageStr!=null && !startMileageStr.trim().isEmpty()) ? Integer.parseInt(startMileageStr.trim()) : null);
 
         TextField endMileageField = (TextField) dialogPaneContent.lookup("#endMileageFieldDialog");
         String endMileageStr = endMileageField.getText();
-        if (endMileageStr != null) {
-            endMileageStr = endMileageStr.trim();
-            assignment.setEndMileage(endMileageStr.isEmpty() ? null : Integer.parseInt(endMileageStr));
-        } else {
-            assignment.setEndMileage(null);
-        }
+        assignment.setEndMileage( (endMileageStr!=null && !endMileageStr.trim().isEmpty()) ? Integer.parseInt(endMileageStr.trim()) : null);
 
         TextArea notesTextArea = (TextArea) dialogPaneContent.lookup("#notesTextAreaDialog");
         String notesContent = notesTextArea.getText();
@@ -195,21 +195,23 @@ public class AssignmentController {
         if (startDate == null) errorMessage.append("Należy wybrać datę rozpoczęcia.\n");
         if (startDate != null && endDate != null && endDate.isBefore(startDate))
             errorMessage.append("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.\n");
-        if (destinationField.getText() == null || destinationField.getText().trim().isEmpty())
+
+        String destText = destinationField.getText();
+        if (destText == null || destText.trim().isEmpty())
             errorMessage.append("Krótki cel podróży jest wymagany.\n");
         if(statusComboBox.getValue() == null || statusComboBox.getValue().trim().isEmpty())
             errorMessage.append("Status przypisania jest wymagany.\n");
 
         Integer startM = null, endM = null;
-        String startMileageStr = startMileageField.getText();
-        if (startMileageStr != null && !startMileageStr.trim().isEmpty()) {
-            try { startM = Integer.parseInt(startMileageStr.trim());
+        String startMileageStrVal = startMileageField.getText();
+        if (startMileageStrVal != null && !startMileageStrVal.trim().isEmpty()) {
+            try { startM = Integer.parseInt(startMileageStrVal.trim());
                 if(startM < 0) errorMessage.append("Przebieg początkowy nie może być ujemny.\n");
             } catch (NumberFormatException e) { errorMessage.append("Przebieg początkowy musi być liczbą.\n"); }
         }
-        String endMileageStr = endMileageField.getText();
-        if (endMileageStr != null && !endMileageStr.trim().isEmpty()) {
-            try { endM = Integer.parseInt(endMileageStr.trim());
+        String endMileageStrVal = endMileageField.getText();
+        if (endMileageStrVal != null && !endMileageStrVal.trim().isEmpty()) {
+            try { endM = Integer.parseInt(endMileageStrVal.trim());
                 if(endM < 0) errorMessage.append("Przebieg końcowy nie może być ujemny.\n");
             } catch (NumberFormatException e) { errorMessage.append("Przebieg końcowy musi być liczbą.\n"); }
         }
@@ -217,26 +219,20 @@ public class AssignmentController {
             errorMessage.append("Przebieg końcowy nie może być mniejszy niż początkowy.\n");
         }
 
+        Long currentAssignmentId = (currentAssignment != null) ? currentAssignment.getId() : null;
         if (selectedVehicle != null && startDate != null) {
-            Long currentAssignmentId = (currentAssignment != null) ? currentAssignment.getId() : null;
             if (assignmentDao.hasOverlappingAssignmentForVehicle(selectedVehicle.getId(), startDate, endDate, currentAssignmentId)) {
-                errorMessage.append("Wybrany pojazd jest już przypisany w pokrywającym się terminie.\n");
+                errorMessage.append("Wybrany pojazd ("+selectedVehicle.getRegistrationNumber()+") jest już przypisany w pokrywającym się terminie.\n");
             }
         }
         if (selectedDriver != null && startDate != null) {
-            Long currentAssignmentId = (currentAssignment != null) ? currentAssignment.getId() : null;
             if (assignmentDao.hasOverlappingAssignmentForDriver(selectedDriver.getId(), startDate, endDate, currentAssignmentId)) {
-                errorMessage.append("Wybrany kierowca jest już przypisany w pokrywającym się terminie.\n");
+                errorMessage.append("Wybrany kierowca ("+selectedDriver.getLastName()+") jest już przypisany w pokrywającym się terminie.\n");
             }
         }
 
         if (errorMessage.length() > 0) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Błąd walidacji danych");
-            alert.setHeaderText(null);
-            alert.setContentText(errorMessage.toString());
-            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-            alert.showAndWait();
+            showError("Błąd walidacji danych",errorMessage.toString());
             return false;
         }
         return true;
@@ -280,7 +276,6 @@ public class AssignmentController {
     private void handleEditAssignment() {
         Assignment selectedAssignment = assignmentTable.getSelectionModel().getSelectedItem();
         if (selectedAssignment == null) {
-            showAlert("Brak zaznaczenia", "Proszę zaznaczyć przypisanie do edycji.");
             return;
         }
         try {
@@ -315,10 +310,45 @@ public class AssignmentController {
     }
 
     @FXML
+    private void handleShowAssignmentDetails() {
+        Assignment selectedAssignment = assignmentTable.getSelectionModel().getSelectedItem();
+        if (selectedAssignment == null) {
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("Dialog/AssignmentDialog.fxml"));
+            GridPane dialogPaneContent = loader.load();
+            setupDialogControls(dialogPaneContent, selectedAssignment);
+            setDialogControlsReadOnly(dialogPaneContent, true);
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Szczegóły Przypisania (ID: " + selectedAssignment.getId() +")");
+            dialog.getDialogPane().setContent(dialogPaneContent);
+            ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().add(okButtonType);
+            dialog.setResizable(true);
+            dialog.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Błąd aplikacji", "Nie udało się otworzyć okna szczegółów: " + e.getMessage());
+        }
+    }
+
+    private void setDialogControlsReadOnly(Pane parentPane, boolean readOnly) {
+        for (Node node : parentPane.getChildren()) {
+            if (node instanceof TextField) ((TextField) node).setEditable(!readOnly);
+            else if (node instanceof TextArea) ((TextArea) node).setEditable(!readOnly);
+            else if (node instanceof ComboBox) ((ComboBox<?>) node).setDisable(readOnly);
+            else if (node instanceof DatePicker) ((DatePicker) node).setDisable(readOnly);
+            else if (node instanceof Spinner) ((Spinner<?>) node).setDisable(readOnly);
+            if (node instanceof Pane) setDialogControlsReadOnly((Pane) node, readOnly);
+        }
+    }
+
+    @FXML
     private void handleDeleteAssignment() {
         Assignment selectedAssignment = assignmentTable.getSelectionModel().getSelectedItem();
         if (selectedAssignment == null) {
-            showAlert("Brak zaznaczenia", "Proszę zaznaczyć przypisanie do usunięcia.");
             return;
         }
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);

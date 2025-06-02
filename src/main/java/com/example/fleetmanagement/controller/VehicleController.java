@@ -7,9 +7,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 
 import java.io.IOException;
@@ -25,6 +27,11 @@ public class VehicleController {
     @FXML private TableColumn<Vehicle, Integer> yearColumn;
     @FXML private TableColumn<Vehicle, String> statusTableColumn;
     @FXML private TableColumn<Vehicle, String> vinTableColumn;
+
+    @FXML private Button showVehicleDetailsButton;
+    @FXML private Button editVehicleButton;
+    @FXML private Button deleteVehicleButton;
+
 
     private VehicleDao vehicleDao;
     private ObservableList<Vehicle> vehicleList;
@@ -47,11 +54,26 @@ public class VehicleController {
         vinTableColumn.setCellValueFactory(new PropertyValueFactory<>("vin"));
 
         loadVehicles();
+
+        // Listener do aktywacji/dezaktywacji przycisków
+        vehicleTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            booleanItemSelected = (newSelection != null);
+            showVehicleDetailsButton.setDisable(!booleanItemSelected);
+            if (editVehicleButton != null) editVehicleButton.setDisable(!booleanItemSelected);
+            if (deleteVehicleButton != null) deleteVehicleButton.setDisable(!booleanItemSelected);
+        });
+        // Początkowa dezaktywacja przycisków
+        showVehicleDetailsButton.setDisable(true);
+        if (editVehicleButton != null) editVehicleButton.setDisable(true);
+        if (deleteVehicleButton != null) deleteVehicleButton.setDisable(true);
     }
+
+    private boolean booleanItemSelected = false; // Flaga pomocnicza
 
     private void loadVehicles() {
         vehicleList = FXCollections.observableArrayList(vehicleDao.findAll());
         vehicleTable.setItems(vehicleList);
+        vehicleTable.getSelectionModel().clearSelection(); // Wyczyść zaznaczenie po załadowaniu
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Vehicle vehicleToEdit) {
@@ -78,7 +100,7 @@ public class VehicleController {
             return null;
         }));
 
-        if (vehicleToEdit != null) { // Edycja
+        if (vehicleToEdit != null) {
             makeField.setText(vehicleToEdit.getMake());
             modelField.setText(vehicleToEdit.getModel());
             regNumberField.setText(vehicleToEdit.getRegistrationNumber());
@@ -92,7 +114,7 @@ public class VehicleController {
             insuranceExpiryDatePicker.setValue(vehicleToEdit.getInsuranceExpiryDate());
             notesTextArea.setText(vehicleToEdit.getNotes());
             makeField.requestFocus();
-        } else { // Dodawanie
+        } else {
             yearSpinner.getValueFactory().setValue(java.time.LocalDate.now().getYear());
             statusComboBox.setValue("Dostępny");
             makeField.requestFocus();
@@ -154,54 +176,41 @@ public class VehicleController {
         if (makeField.getText() == null || makeField.getText().trim().isEmpty()) errorMessage.append("Marka jest wymagana.\n");
         if (modelField.getText() == null || modelField.getText().trim().isEmpty()) errorMessage.append("Model jest wymagany.\n");
         if (regNumberField.getText() == null || regNumberField.getText().trim().isEmpty()) errorMessage.append("Numer rejestracyjny jest wymagany.\n");
-        String vinText = vinField.getText();
-        if (vinText != null && !vinText.trim().isEmpty() && vinText.trim().length() != 17)
+        String vinTextVal = vinField.getText();
+        if (vinTextVal != null && !vinTextVal.trim().isEmpty() && vinTextVal.trim().length() != 17)
             errorMessage.append("Numer VIN musi mieć 17 znaków (lub pozostać pusty).\n");
         if (statusComboBox.getValue() == null || statusComboBox.getValue().trim().isEmpty())
             errorMessage.append("Status pojazdu jest wymagany.\n");
-        String mileageText = mileageField.getText();
-        if (mileageText != null && !mileageText.trim().isEmpty()) {
+        String mileageTextVal = mileageField.getText();
+        if (mileageTextVal != null && !mileageTextVal.trim().isEmpty()) {
             try {
-                int mileage = Integer.parseInt(mileageText.trim());
+                int mileage = Integer.parseInt(mileageTextVal.trim());
                 if (mileage < 0) errorMessage.append("Przebieg nie może być ujemny.\n");
             } catch (NumberFormatException e) { errorMessage.append("Przebieg musi być poprawną liczbą całkowitą.\n"); }
         }
 
         LocalDate purchaseDate = purchaseDatePicker.getValue();
         LocalDate lastServiceDate = lastServiceDatePicker.getValue();
-        LocalDate insuranceExpiryDate = insuranceExpiryDatePicker.getValue();
+        LocalDate insuranceExpiryDateVal = insuranceExpiryDatePicker.getValue();
         Integer productionYearVal = yearSpinner.getValue();
 
         if (productionYearVal != null) {
-            // Porównanie dat tylko jeśli rok produkcji jest dostępny.
-            LocalDate endOfProductionYear = LocalDate.of(productionYearVal, 12, 31);
-
             if (purchaseDate != null && purchaseDate.getYear() < productionYearVal) {
                 errorMessage.append("Rok daty zakupu nie może być wcześniejszy niż rok produkcji.\n");
             }
             if (lastServiceDate != null && lastServiceDate.isBefore(LocalDate.of(productionYearVal, 1, 1))) {
                 errorMessage.append("Data ostatniego serwisu nie może być wcześniejsza niż rok produkcji.\n");
             }
-            // Data ważności ubezpieczenia powinna być po roku produkcji
-            if (insuranceExpiryDate != null && insuranceExpiryDate.isBefore(LocalDate.of(productionYearVal, 1, 1).plusDays(1))) {
+            if (insuranceExpiryDateVal != null && insuranceExpiryDateVal.isBefore(LocalDate.of(productionYearVal, 1, 1).plusDays(1))) {
                 errorMessage.append("Data ważności ubezpieczenia musi być późniejsza niż rok produkcji.\n");
             }
         }
         if (lastServiceDate != null && purchaseDate != null && lastServiceDate.isBefore(purchaseDate)) {
             errorMessage.append("Data ostatniego serwisu nie może być wcześniejsza niż data zakupu.\n");
         }
-        if (insuranceExpiryDate != null && insuranceExpiryDate.isBefore(LocalDate.now().minusMonths(1))) {
-            errorMessage.append("Ubezpieczenie wydaje się być nieważne.\n");
-        }
-
 
         if (errorMessage.length() > 0) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Błąd walidacji danych");
-            alert.setHeaderText(null);
-            alert.setContentText(errorMessage.toString());
-            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-            alert.showAndWait();
+            showError("Błąd walidacji danych", errorMessage.toString());
             return false;
         }
         return true;
@@ -280,6 +289,56 @@ public class VehicleController {
     }
 
     @FXML
+    private void handleShowVehicleDetails() {
+        Vehicle selectedVehicle = vehicleTable.getSelectionModel().getSelectedItem();
+        if (selectedVehicle == null) {
+            showAlert("Brak zaznaczenia", "Proszę zaznaczyć pojazd, aby zobaczyć szczegóły.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("Dialog/VehicleDialog.fxml"));
+            GridPane dialogPaneContent = loader.load();
+
+            setupDialogControls(dialogPaneContent, selectedVehicle);
+            setDialogControlsReadOnly(dialogPaneContent, true);
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Szczegóły Pojazdu: " + selectedVehicle.getRegistrationNumber());
+            dialog.getDialogPane().setContent(dialogPaneContent);
+
+            ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().add(okButtonType);
+            dialog.setResizable(true);
+
+            dialog.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Błąd aplikacji", "Nie udało się otworzyć okna szczegółów: " + e.getMessage());
+        }
+    }
+
+    private void setDialogControlsReadOnly(Pane parentPane, boolean readOnly) {
+        for (Node node : parentPane.getChildren()) {
+            if (node instanceof TextField) {
+                ((TextField) node).setEditable(!readOnly);
+            } else if (node instanceof TextArea) {
+                ((TextArea) node).setEditable(!readOnly);
+            } else if (node instanceof ComboBox) {
+                ((ComboBox<?>) node).setDisable(readOnly);
+            } else if (node instanceof DatePicker) {
+                ((DatePicker) node).setDisable(readOnly);
+            } else if (node instanceof Spinner) {
+                ((Spinner<?>) node).setDisable(readOnly);
+            }
+            if (node instanceof Pane) {
+                setDialogControlsReadOnly((Pane) node, readOnly);
+            }
+        }
+    }
+
+    @FXML
     private void handleDeleteVehicle() {
         Vehicle selectedVehicle = vehicleTable.getSelectionModel().getSelectedItem();
         if (selectedVehicle == null) {
@@ -324,5 +383,4 @@ public class VehicleController {
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
     }
-
 }
