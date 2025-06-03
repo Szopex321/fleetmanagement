@@ -29,9 +29,9 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
             <Button onAction="#handleAddVehicle" text="Dodaj Pojazd..." />
-            <Button onAction="#handleEditVehicle" text="Edytuj Zaznaczony..." />
+            <Button fx:id="editVehicleButton" onAction="#handleEditVehicle" text="Edytuj Zaznaczony..." />
             <Button fx:id="showVehicleDetailsButton" onAction="#handleShowVehicleDetails" text="Pokaż Szczegóły..." />
-            <Button onAction="#handleDeleteVehicle" text="Usuń Zaznaczony" />
+            <Button fx:id="deleteVehicleButton" onAction="#handleDeleteVehicle" text="Usuń Zaznaczony" />
             <Button onAction="#handleRefresh" text="Odśwież Listę" />
         </HBox>
     </bottom>

@@ -30,9 +30,9 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
             <Button onAction="#handleAddAssignment" text="Dodaj Przypisanie..." />
-            <Button onAction="#handleEditAssignment" text="Edytuj Zaznaczone..." />
+            <Button fx:id="editAssignmentButton" onAction="#handleEditAssignment" text="Edytuj Zaznaczone..." />
             <Button fx:id="showAssignmentDetailsButton" onAction="#handleShowAssignmentDetails" text="Pokaż Szczegóły..." />
-            <Button onAction="#handleDeleteAssignment" text="Usuń Zaznaczone" />
+            <Button fx:id="deleteAssignmentButton" onAction="#handleDeleteAssignment" text="Usuń Zaznaczone" />
             <Button onAction="#handleRefresh" text="Odśwież Listę" />
         </HBox>
     </bottom>

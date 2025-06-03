@@ -102,7 +102,7 @@ public class DriverController {
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Driver driverToEdit) {
-        // Pobranie referencji do kontrolek z DriverDialog.fxml za pomocą lookup().
+        // Pobranie referencji do kontrolek z DriverDialog.fxml za pomocą lookup() czyli fx:id.
         TextField firstNameField = (TextField) dialogPaneContent.lookup("#firstNameFieldDialog");
         TextField lastNameField = (TextField) dialogPaneContent.lookup("#lastNameFieldDialog");
         TextField licenseNumberField = (TextField) dialogPaneContent.lookup("#licenseNumberFieldDialog");

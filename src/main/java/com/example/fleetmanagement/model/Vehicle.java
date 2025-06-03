@@ -13,10 +13,10 @@ public class Vehicle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "make", nullable = false, length = 100)
     private String make;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "model", nullable = false, length = 100)
     private String model;
 
     @Column(name = "registration_number", unique = true, nullable = false, length = 20)

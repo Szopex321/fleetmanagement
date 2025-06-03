@@ -28,9 +28,9 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
             <Button onAction="#handleAddDriver" text="Dodaj Kierowcę..." />
-            <Button onAction="#handleEditDriver" text="Edytuj Zaznaczonego..." />
+            <Button fx:id="editDriverButton" onAction="#handleEditDriver" text="Edytuj Zaznaczonego..." />
             <Button fx:id="showDriverDetailsButton" onAction="#handleShowDriverDetails" text="Pokaż Szczegóły..." />
-            <Button onAction="#handleDeleteDriver" text="Usuń Zaznaczonego" />
+            <Button fx:id="deleteDriverButton" onAction="#handleDeleteDriver" text="Usuń Zaznaczonego" />
             <Button onAction="#handleRefresh" text="Odśwież Listę" />
         </HBox>
     </bottom>

@@ -78,7 +78,7 @@ public class VehicleController {
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Vehicle vehicleToEdit) {
-        // Pobieranie referencji do poszczególnych kontrolek z dialogu za pomocą lookup().
+        // Pobieranie referencji do poszczególnych kontrolek z dialogu za pomocą lookup() czyli fx:id.
         TextField makeField = (TextField) dialogPaneContent.lookup("#makeFieldDialog");
         TextField modelField = (TextField) dialogPaneContent.lookup("#modelFieldDialog");
         TextField regNumberField = (TextField) dialogPaneContent.lookup("#regNumberFieldDialog");

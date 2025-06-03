@@ -54,15 +54,6 @@ public class Assignment {
         this.status = "Zaplanowane";
     }
 
-    public Assignment(Vehicle vehicle, Driver driver, LocalDate startDate, LocalDate endDate, String destination) {
-        this(); // Wywołuje domyślny konstruktor
-        this.vehicle = vehicle;
-        this.driver = driver;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.destination = destination;
-    }
-
     public Assignment(Vehicle vehicle, Driver driver, LocalDate startDate, LocalDate endDate, String destination,
                       String purpose, Integer startMileage, Integer endMileage, String notes, String status) {
         this.vehicle = vehicle;

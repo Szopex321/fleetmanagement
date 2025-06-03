@@ -85,7 +85,7 @@ public class AssignmentController {
     }
 
     private void setupDialogControls(GridPane dialogPaneContent, Assignment assignmentToEdit) {
-        // Pobranie referencji do kontrolek z AssignmentDialog.fxml.
+        // Pobranie referencji do kontrolek z AssignmentDialog.fxml za pomoco lookup() czyli fx:id.
         ComboBox<Vehicle> vehicleComboBox = (ComboBox<Vehicle>) dialogPaneContent.lookup("#vehicleComboBoxDialog");
         ComboBox<Driver> driverComboBox = (ComboBox<Driver>) dialogPaneContent.lookup("#driverComboBoxDialog");
         DatePicker startDatePicker = (DatePicker) dialogPaneContent.lookup("#startDatePickerDialogInterface");

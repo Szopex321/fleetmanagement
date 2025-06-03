@@ -51,13 +51,6 @@ public class Driver {
         this.status = "Aktywny";
     }
 
-    public Driver(String firstName, String lastName, String licenseNumber) {
-        this(); // Wywołuje domyślny konstruktor
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.licenseNumber = licenseNumber;
-    }
-
     public Driver(String firstName, String lastName, String licenseNumber, String phoneNumber, String email,
                   LocalDate employmentDate, String status, LocalDate licenseExpiryDate,
                   LocalDate medicalCheckExpiryDate, String address) {
